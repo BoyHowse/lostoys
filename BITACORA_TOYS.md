@@ -1,0 +1,18 @@
+## [2025-11-13 23:42] — Documentación SaveGame + soporte PDF en AI
+- Cambios:
+  - backend/cars/services.py actualizado
+  - backend/cars/serializers.py actualizado
+  - backend/requirements.txt actualizado
+  - savegametoys.md reescrito
+  - BITACORA_TOYS.md actualizado
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - DocumentAIService ahora acepta imágenes o PDF convirtiendo la primera página a PNG usando pypdfium2, preservando el límite de 8MB y manteniendo la lógica de estados AI.
+  - La validación de DRF permite archivos PDF además de imágenes; se agregó dependencia pypdfium2 al backend.
+  - Se documentó el estado completo del proyecto en savegametoys.md y se registró este savegame en la bitácora.
+- Pruebas necesarias
+  - Subir una Licencia de Tránsito en PDF y verificar que aparezca con estado AI correspondiente.
+  - Ejecutar `savegametoys \"mensaje\"` para confirmar que automation registra tree y bitácora.
+- Pendientes futuros
+  - Integrar Celery/Redis para el pipeline AI.
+  - Implementar UI/alerts para resultados AI en tiempo real.

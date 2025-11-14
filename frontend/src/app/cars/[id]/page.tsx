@@ -1,0 +1,599 @@
+"use client";
+
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+
+import EmptyState from "@/components/EmptyState";
+import LoadingState from "@/components/LoadingState";
+import { useAuth } from "@/context/AuthContext";
+import { useI18n } from "@/context/I18nContext";
+import { get } from "@/lib/fetcher";
+
+type Document = {
+  id: number;
+  type: string;
+  type_display?: string;
+  issue_date: string;
+  expiry_date: string;
+  provider: string;
+  amount: string;
+  status_indicator: string;
+  document_file?: string | null;
+  ai_status?: string;
+  ai_feedback?: string;
+};
+
+type Credit = {
+  id: number;
+  bank: string;
+  total_amount: string;
+  monthly_payment: string;
+  payment_day: number;
+  remaining_balance: string;
+  next_payment_date: string;
+};
+
+type Maintenance = {
+  id: number;
+  date: string;
+  concept: string;
+  cost: string;
+  workshop: string;
+  notes: string;
+};
+
+type CarDetail = {
+  id: number;
+  brand: string;
+  model: string;
+  plate: string;
+  year: number;
+  estimated_value?: string;
+  status: string;
+  health_status: string;
+  documents: Document[];
+  credits: Credit[];
+  maintenances: Maintenance[];
+};
+
+type Notification = {
+  id: number;
+  message: string;
+  send_date: string;
+  notification_type: string;
+  status: string;
+  reference_object_id: number | null;
+  reference_model?: string;
+};
+
+type TabKey = "documents" | "credits" | "maintenance" | "notifications" | "history";
+
+const statusClasses: Record<string, string> = {
+  red: "border-rose-500/40 bg-rose-500/10 text-rose-200",
+  yellow: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+  green: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
+};
+
+const aiStatusClasses: Record<string, string> = {
+  pending: "border-neutral-700 bg-neutral-900/40 text-neutral-200",
+  processing: "border-sky-500/40 bg-sky-500/10 text-sky-100",
+  completed: "border-emerald-500/40 bg-emerald-500/10 text-emerald-100",
+  warning: "border-amber-500/40 bg-amber-500/10 text-amber-100",
+  failed: "border-rose-500/40 bg-rose-500/10 text-rose-100",
+};
+
+export default function CarDetailPage() {
+  const params = useParams();
+  const carId = Number(Array.isArray(params?.id) ? params.id[0] : params?.id);
+  const { user, loading } = useAuth();
+  const { t } = useI18n();
+  const apiBaseUrl =
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
+  const [car, setCar] = useState<CarDetail | null>(null);
+  const [activeTab, setActiveTab] = useState<TabKey>("documents");
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [fetching, setFetching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const tabLabels: Record<TabKey, string> = {
+    documents: t("carDetail.sections.documents"),
+    credits: t("carDetail.sections.credits"),
+    maintenance: t("carDetail.sections.maintenance"),
+    notifications: t("carDetail.sections.notifications"),
+    history: t("carDetail.sections.history"),
+  };
+
+  const statusIndicatorLabels: Record<string, string> = {
+    green: t("vehicleCard.statuses.green"),
+    yellow: t("vehicleCard.statuses.yellow"),
+    red: t("vehicleCard.statuses.red"),
+  };
+
+  const aiStatusLabels: Record<string, string> = {
+    pending: t("documents.aiStatus.pending"),
+    processing: t("documents.aiStatus.processing"),
+    completed: t("documents.aiStatus.completed"),
+    warning: t("documents.aiStatus.warning"),
+    failed: t("documents.aiStatus.failed"),
+  };
+
+  const carStatusLabels: Record<string, string> = {
+    active: t("common.statuses.car.active"),
+    sold: t("common.statuses.car.sold"),
+    inactive: t("common.statuses.car.inactive"),
+  };
+
+  const notificationTypeLabels: Record<string, string> = {
+    email: t("common.statuses.notificationTypes.email"),
+    whatsapp: t("common.statuses.notificationTypes.whatsapp"),
+    sms: t("common.statuses.notificationTypes.sms"),
+  };
+
+  const notificationStatusLabels: Record<string, string> = {
+    sent: t("common.statuses.alerts.sent"),
+    failed: t("common.statuses.alerts.failed"),
+    pending: t("common.statuses.alerts.pending"),
+  };
+
+  useEffect(() => {
+    if (!user || loading || !carId) {
+      return;
+    }
+    setFetching(true);
+    setError(null);
+    Promise.all([get(`/api/cars/${carId}/`), get("/api/notifications/")])
+      .then(([carData, notificationsData]) => {
+        setCar(carData);
+        const records: Notification[] = notificationsData.results ?? notificationsData;
+        setNotifications(records);
+      })
+      .catch((err: Error) => {
+        setError(err.message || t("errors.loadCar"));
+      })
+      .finally(() => setFetching(false));
+  }, [user, loading, carId, t]);
+
+  const carNotifications = useMemo(() => {
+    if (!car) return [];
+    const relatedIds = new Set<number>([
+      car.id,
+      ...car.documents.map((doc) => doc.id),
+    ]);
+    return notifications.filter((item) =>
+      item.reference_object_id ? relatedIds.has(item.reference_object_id) : false,
+    );
+  }, [notifications, car]);
+
+  const timeline = useMemo(() => {
+    if (!car) return [];
+    const expiresPrefix = t("carDetail.timeline.expiresPrefix");
+    const events = [
+      ...car.documents.map((doc) => ({
+        id: `doc-${doc.id}`,
+        label: doc.type_display ?? doc.type,
+        date: doc.issue_date,
+        detail: `${expiresPrefix} ${new Date(doc.expiry_date).toLocaleDateString()}`,
+      })),
+      ...car.maintenances.map((mt) => ({
+        id: `mt-${mt.id}`,
+        label: mt.concept,
+        date: mt.date,
+        detail: mt.notes || mt.workshop,
+      })),
+    ];
+    return events.sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+    );
+  }, [car, t]);
+
+  const documentsWithWarnings = useMemo(
+    () => car?.documents.filter((doc) => doc.ai_status === "warning") ?? [],
+    [car],
+  );
+
+  if (loading || fetching) {
+    return <LoadingState message={t("loading.loadingVehicle")} />;
+  }
+
+  if (!user) {
+    return <p className="text-neutral-400">{t("carDetail.signInNotice")}</p>;
+  }
+
+  if (!carId) {
+    return (
+      <EmptyState
+        title={t("carDetail.missingNotice.title")}
+        description={t("carDetail.missingNotice.description")}
+      />
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-2xl border border-rose-600/60 bg-rose-950/30 px-6 py-4 text-sm text-rose-200">
+        {error}
+      </div>
+    );
+  }
+
+  if (!car) {
+    return (
+      <EmptyState
+        title={t("carDetail.notFound.title")}
+        description={t("carDetail.notFound.description")}
+      />
+    );
+  }
+
+  const carStatusLabel = carStatusLabels[car.status] ?? car.status;
+  const healthStatusLabel =
+    statusIndicatorLabels[car.health_status] ?? car.health_status;
+
+  return (
+    <div className="space-y-8">
+      <div className="flex flex-col gap-6 rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 shadow-glow lg:flex-row lg:items-end lg:justify-between">
+        <div className="space-y-3">
+          <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+            {t("carDetail.vehicleCard.vehicleNumber")} {car.id}
+          </p>
+          <h1 className="text-4xl font-semibold text-gold">
+            {car.brand} {car.model}
+          </h1>
+          <p className="text-sm uppercase tracking-[0.4em] text-neutral-400">
+            {car.plate}
+          </p>
+          <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.3em] text-neutral-400">
+            <span className="rounded-full border border-neutral-700 px-3 py-1">
+              {t("vehicleCard.labels.year")} {car.year}
+            </span>
+            <span className="rounded-full border border-neutral-700 px-3 py-1">
+              {t("carDetail.vehicleCard.statusLabel")} {carStatusLabel}
+            </span>
+            <span
+              className={`rounded-full border px-3 py-1 ${
+                statusClasses[car.health_status] || statusClasses.green
+              }`}
+            >
+              {healthStatusLabel}
+            </span>
+          </div>
+        </div>
+        <div className="space-y-4 text-sm text-neutral-300">
+          <p>
+            {t("carDetail.vehicleCard.estimatedValue")}: $
+            {Number.parseFloat(car.estimated_value ?? "0").toLocaleString()}
+          </p>
+          <Link
+            href={`/cars/${car.id}/edit`}
+            className="inline-flex items-center rounded-full border border-gold px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-gold transition hover:bg-gold hover:text-black"
+          >
+            {t("carDetail.vehicleCard.edit")}
+          </Link>
+        </div>
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto rounded-full border border-neutral-800 bg-neutral-900/60 p-1 text-xs uppercase tracking-[0.3em] text-neutral-400">
+        {(Object.keys(tabLabels) as TabKey[]).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            className={`rounded-full px-4 py-2 transition ${
+              activeTab === tab
+                ? "bg-gold text-black"
+                : "hover:text-gold"
+            }`}
+          >
+            {tabLabels[tab]}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === "documents" && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-neutral-200">
+              {t("carDetail.sections.documents")}
+            </h2>
+            <Link
+              href={`/cars/${car.id}/documents/new`}
+              className="rounded-full border border-gold px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-gold transition hover:bg-gold hover:text-black"
+            >
+              {t("carDetail.buttons.addDocument")}
+            </Link>
+          </div>
+          {documentsWithWarnings.length > 0 && (
+            <div className="rounded-2xl border border-amber-600/50 bg-amber-950/20 px-4 py-3 text-sm text-amber-100">
+              <p className="font-semibold uppercase tracking-[0.3em]">
+                {t("carDetail.documents.warningTitle")}
+              </p>
+              <p className="text-amber-50/90">
+                {t("carDetail.documents.warningDescription")} · {documentsWithWarnings.length}{" "}
+                {t("carDetail.documents.warningCountLabel")}
+              </p>
+            </div>
+          )}
+          {car.documents.length === 0 ? (
+            <EmptyState
+              title={t("carDetail.documents.emptyTitle")}
+              description={t("carDetail.documents.emptyDescription")}
+            />
+          ) : (
+            <div className="overflow-hidden rounded-2xl border border-neutral-800">
+              <table className="min-w-full divide-y divide-neutral-800 text-sm text-neutral-200">
+                <thead className="bg-neutral-900/80 text-xs uppercase tracking-[0.3em] text-neutral-500">
+                  <tr>
+                    <th className="px-4 py-3 text-left">
+                      {t("carDetail.documents.columns.type")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("carDetail.documents.columns.provider")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("carDetail.documents.columns.issue")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("carDetail.documents.columns.expiry")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("carDetail.documents.columns.amount")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("carDetail.documents.columns.status")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("carDetail.documents.columns.validation")}
+                    </th>
+                    <th className="px-4 py-3 text-left">
+                      {t("carDetail.documents.columns.file")}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-neutral-800">
+                  {car.documents.map((doc) => {
+                    const aiStatus = doc.ai_status ?? "pending";
+                    const aiBadgeClass =
+                      aiStatusClasses[aiStatus] || aiStatusClasses.pending;
+                    const aiLabel =
+                      aiStatusLabels[aiStatus] || aiStatus;
+                    const fileUrl = doc.document_file
+                      ? `${apiBaseUrl}${doc.document_file}`
+                      : null;
+                    return (
+                      <tr key={doc.id} className="hover:bg-neutral-900/70">
+                        <td className="px-4 py-3 text-neutral-100">
+                          {(doc.type_display ?? doc.type) || doc.type}
+                        </td>
+                        <td className="px-4 py-3">{doc.provider || "—"}</td>
+                        <td className="px-4 py-3">
+                          {new Date(doc.issue_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          {new Date(doc.expiry_date).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          $
+                          {Number.parseFloat(doc.amount || "0").toLocaleString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${
+                              statusClasses[doc.status_indicator] || statusClasses.green
+                            }`}
+                          >
+                            {statusIndicatorLabels[doc.status_indicator] ||
+                              doc.status_indicator}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="space-y-1">
+                            <span
+                              className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${aiBadgeClass}`}
+                            >
+                              {aiLabel}
+                            </span>
+                            {doc.ai_feedback && (
+                              <p className="text-xs text-neutral-400">
+                                {doc.ai_feedback}
+                              </p>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3">
+                          {fileUrl ? (
+                            <a
+                              href={fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex rounded-full border border-neutral-700 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-200 transition hover:border-gold hover:text-gold"
+                            >
+                              {t("carDetail.documents.actions.viewFile")}
+                            </a>
+                          ) : (
+                            <span className="text-neutral-500">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "credits" && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-neutral-200">
+              {t("carDetail.sections.credits")}
+            </h2>
+            <Link
+              href={`/cars/${car.id}/credits/new`}
+              className="rounded-full border border-gold px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-gold transition hover:bg-gold hover:text-black"
+            >
+              {t("carDetail.buttons.addCredit")}
+            </Link>
+          </div>
+          {car.credits.length === 0 ? (
+            <EmptyState
+              title={t("carDetail.credits.emptyTitle")}
+              description={t("carDetail.credits.emptyDescription")}
+            />
+          ) : (
+            <div className="grid gap-4 md:grid-cols-2">
+              {car.credits.map((credit) => (
+                <article
+                  key={credit.id}
+                  className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5"
+                >
+                  <h3 className="text-lg font-semibold text-gold">{credit.bank}</h3>
+                  <div className="mt-3 space-y-2 text-sm text-neutral-300">
+                    <p>
+                      {t("carDetail.credits.totalAmount")}: $
+                      {Number.parseFloat(credit.total_amount || "0").toLocaleString()}
+                    </p>
+                    <p>
+                      {t("carDetail.credits.monthlyPayment")}: $
+                      {Number.parseFloat(credit.monthly_payment || "0").toLocaleString()} -{" "}
+                      {t("common.words.day")} {credit.payment_day}
+                    </p>
+                    <p>
+                      {t("carDetail.credits.remainingBalance")}: $
+                      {Number.parseFloat(credit.remaining_balance || "0").toLocaleString()}
+                    </p>
+                    <p>
+                      {t("carDetail.credits.nextPayment")}:{" "}
+                      {new Date(credit.next_payment_date).toLocaleDateString()}
+                    </p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "maintenance" && (
+        <section className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold text-neutral-200">
+              {t("carDetail.sections.maintenanceLog")}
+            </h2>
+            <Link
+              href={`/cars/${car.id}/maintenance/new`}
+              className="rounded-full border border-gold px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-gold transition hover:bg-gold hover:text-black"
+            >
+              {t("carDetail.buttons.addMaintenance")}
+            </Link>
+          </div>
+          {car.maintenances.length === 0 ? (
+            <EmptyState
+              title={t("carDetail.maintenance.emptyTitle")}
+              description={t("carDetail.maintenance.emptyDescription")}
+            />
+          ) : (
+            <div className="space-y-4">
+              {car.maintenances.map((item) => (
+                <article
+                  key={item.id}
+                  className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5"
+                >
+                  <div className="flex items-center justify-between text-sm text-neutral-400">
+                    <span>{new Date(item.date).toLocaleDateString()}</span>
+                    <span>
+                      $
+                      {Number.parseFloat(item.cost || "0").toLocaleString()} ·{" "}
+                      {item.workshop || t("carDetail.maintenance.unknownWorkshop")}
+                    </span>
+                  </div>
+                  <h3 className="mt-2 text-lg font-semibold text-neutral-100">
+                    {item.concept}
+                  </h3>
+                  {item.notes && <p className="mt-2 text-sm text-neutral-400">{item.notes}</p>}
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "notifications" && (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-200">
+            {t("carDetail.sections.notifications")}
+          </h2>
+          {carNotifications.length === 0 ? (
+            <EmptyState
+              title={t("carDetail.notifications.emptyTitle")}
+              description={t("carDetail.notifications.emptyDescription")}
+            />
+          ) : (
+            <div className="space-y-3">
+              {carNotifications.map((note) => (
+                <article
+                  key={note.id}
+                  className="rounded-2xl border border-neutral-800 bg-neutral-900/60 p-5"
+                >
+                  <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-neutral-500">
+                    <span>
+                      {notificationTypeLabels[note.notification_type] ?? note.notification_type}
+                    </span>
+                    <span>{new Date(note.send_date).toLocaleString()}</span>
+                  </div>
+                  <p className="mt-3 text-sm text-neutral-200">{note.message}</p>
+                  <span
+                    className={`mt-3 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${
+                      note.status === "sent"
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-200"
+                        : note.status === "failed"
+                          ? "border-rose-500/40 bg-rose-500/10 text-rose-200"
+                          : "border-amber-500/40 bg-amber-500/10 text-amber-200"
+                    }`}
+                  >
+                    {notificationStatusLabels[note.status] ?? note.status}
+                  </span>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "history" && (
+        <section className="space-y-4">
+          <h2 className="text-lg font-semibold text-neutral-200">
+            {t("carDetail.sections.timeline")}
+          </h2>
+          {timeline.length === 0 ? (
+            <EmptyState
+              title={t("carDetail.history.emptyTitle")}
+              description={t("carDetail.history.emptyDescription")}
+            />
+          ) : (
+            <div className="space-y-4">
+              {timeline.map((event) => (
+                <div key={event.id} className="flex items-start gap-4">
+                  <span className="mt-1 h-3 w-3 rounded-full bg-gold" />
+                  <div className="space-y-1">
+                    <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                      {new Date(event.date).toLocaleDateString()}
+                    </p>
+                    <h3 className="text-sm font-semibold text-neutral-100">
+                      {event.label}
+                    </h3>
+                    {event.detail && (
+                      <p className="text-sm text-neutral-400">{event.detail}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}
