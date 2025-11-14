@@ -113,6 +113,9 @@
 |   |-- db.sqlite3
 |   |-- manage.py
 |   |-- media
+|   |   `-- cars
+|   |       `-- documents
+|   |           `-- licencia_transito.pdf
 |   `-- requirements.txt
 |-- frontend
 |   |-- README.md
@@ -186,4 +189,4 @@
 |   `-- savegametoys.sh
 `-- tree_toys.txt
 
-49 directories, 138 files
+51 directories, 139 files

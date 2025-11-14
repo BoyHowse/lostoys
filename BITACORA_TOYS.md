@@ -128,3 +128,15 @@
   - `python manage.py runserver` y verificar `/api/accounts/login/` y `/api/accounts/me/` apuntando a la nueva DB.
 - Pendientes futuros
   - Considerar scripts para crear la DB automáticamente (Makefile o management command).
+
+## [$(date '+%Y-%m-%d %H:%M')] — Fix health_status en Car
+- Cambios:
+  - backend/cars/models.py invoca doc.days_until_expiry()
+  - savegametoys.md actualizado
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - El método `health_status` usaba el método `days_until_expiry` sin llamarlo, provocando `TypeError: '<' not supported between instances of 'method' and 'int'` en `/api/cars/<id>/`. Ahora se llama al método y la API vuelve a responder 200.
+- Pruebas necesarias
+  - GET `/api/cars/` y `/api/cars/<id>/` (en especial el vehículo recién creado con AI) para confirmar que el health_status se calcula correctamente.
+- Pendientes futuros
+  - Agregar tests unitarios que cubran `Car.health_status` y flujos de documentos AI.

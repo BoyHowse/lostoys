@@ -46,7 +46,7 @@ class Car(TimeStampedModel):
     def health_status(self) -> str:
         """Return a traffic-light style status based on the closest document expiry."""
         upcoming_expiry = min(
-            (doc.days_until_expiry for doc in self.documents.all()),
+            (doc.days_until_expiry() for doc in self.documents.all()),
             default=None,
         )
         if upcoming_expiry is None:

@@ -44,3 +44,4 @@ Este documento se regenera cada vez que corremos el flujo SaveGameToys para deja
 - El endpoint `/api/accounts/login/` se declaró `csrf_exempt` para permitir autenticaciones desde clientes externos (Postman, apps móviles) sin requerir token CSRF, manteniendo la sesión basada en cookies.
 - Se añadió una autenticación `CsrfExemptSessionAuthentication` específica para el login, lo que evita 403 por CSRF pero mantiene el resto de endpoints con las protecciones por defecto.
 - El comando `seed_initial_data` ahora marca automáticamente a `boy` y `demo` como `is_verified=True` para que las credenciales del README funcionen sin pasar por el flujo de correo.
+- `Car.health_status` corregido para invocar `doc.days_until_expiry()` (antes era el método sin ejecutar), evitando el crash “TypeError '<' not supported…” al consultar `/api/cars/:id/`.
