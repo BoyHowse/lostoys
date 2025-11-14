@@ -12,11 +12,12 @@
   - Se documentó el estado completo del proyecto en savegametoys.md y se registró este savegame en la bitácora.
 - Pruebas necesarias
   - Subir una Licencia de Tránsito en PDF y verificar que aparezca con estado AI correspondiente.
-  - Ejecutar `savegametoys \"mensaje\"` para confirmar que automation registra tree y bitácora.
+  - Ejecutar `savegametoys "mensaje"` para confirmar que automation registra tree y bitácora.
 - Pendientes futuros
   - Integrar Celery/Redis para el pipeline AI.
   - Implementar UI/alerts para resultados AI en tiempo real.
-## [$(date '+%Y-%m-%d %H:%M')] — Setup comando savegametoys automatizado
+
+## [2025-11-14 00:02] — Setup comando savegametoys automatizado
 - Cambios:
   - savegametoys creado/actualizado
   - scripts/generate_savegametoys.ts creado
