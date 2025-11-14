@@ -39,3 +39,4 @@ Este documento se regenera cada vez que corremos el flujo SaveGameToys para deja
 ## 8. Notas
 - `savegametoys` script regenera este archivo, la bitácora y el árbol, además de hacer commit/push.
 - Sensibles: `.env`, `backend/venv`, `backend/db.sqlite3` ignorados mediante `.gitignore`.
+- La vista `/verify/[token]` (Next.js) ahora usa `useParams` para alinearse con el nuevo contrato de `params` basado en Promises, evitando warnings/errores a futuro.

@@ -1,14 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { get, post } from "@/lib/fetcher";
 
 type VerifyStatus = "loading" | "success" | "invalid" | "expired" | "error";
 
-export default function VerifyPage({ params }: { params: { token: string } }) {
-  const { token } = params;
+export default function VerifyPage() {
+  const params = useParams<{ token: string }>();
+  const tokenValue = params?.token;
+  const token = Array.isArray(tokenValue) ? tokenValue[0] : tokenValue || "";
   const [status, setStatus] = useState<VerifyStatus>("loading");
   const [message, setMessage] = useState("");
   const [resending, setResending] = useState(false);

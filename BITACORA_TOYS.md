@@ -64,3 +64,16 @@
   - Levantar el servidor (manage.py runserver) y verificar que `/api/accounts/me/` responde sin error 500.
 - Pendientes futuros
   - Automatizar validaciones del entorno antes de arrancar el backend.
+
+## [$(date '+%Y-%m-%d %H:%M')] — Ajuste verify/[token] y documentación SaveGame
+- Cambios:
+  - frontend/src/app/verify/[token]/page.tsx actualizado para usar useParams
+  - savegametoys.md actualizado con nota sobre el flujo de verificación
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - Next.js 15 vuelve `params` una Promise en componentes cliente; se reemplazó la desestructuración directa por `useParams` para evitar errores y preparar la migración obligatoria.
+  - Se dejó constancia del cambio en savegametoys.md dentro de la sección de notas.
+- Pruebas necesarias
+  - Abrir un enlace de verificación (`/verify/<token>/`) y confirmar que ya no aparece el warning/console error.
+- Pendientes futuros
+  - Evaluar un refactor para extraer lógica común de verificación/reestreno de correos.
