@@ -29,8 +29,11 @@ class Command(BaseCommand):
         )
         if created or not superuser.check_password("Prestige1$"):
             superuser.set_password("Prestige1$")
-            superuser.save()
-            self.stdout.write(self.style.SUCCESS("Superuser 'boy' ensured."))
+        superuser.is_verified = True
+        superuser.verification_sent_at = timezone.now()
+        superuser.country = "co"
+        superuser.save()
+        self.stdout.write(self.style.SUCCESS("Superuser 'boy' ensured."))
 
         demo_user, _ = User.objects.get_or_create(
             username="demo",
@@ -46,7 +49,10 @@ class Command(BaseCommand):
         )
         if not demo_user.check_password("demo1234"):
             demo_user.set_password("demo1234")
-            demo_user.save()
+        demo_user.is_verified = True
+        demo_user.verification_sent_at = timezone.now()
+        demo_user.country = "co"
+        demo_user.save()
 
         car1, _ = Car.objects.get_or_create(
             user=demo_user,

@@ -103,3 +103,15 @@
   - POST /api/accounts/login/ desde Postman sin token CSRF debe responder 200 con credenciales válidas.
 - Pendientes futuros
   - Evaluar mover login a JWT para evitar sesiones cuando el cliente sea 100% mobile.
+
+## [$(date '+%Y-%m-%d %H:%M')] — Seed inicial marca usuarios como verificados
+- Cambios:
+  - backend/accounts/management/commands/seed_initial_data.py asegura `boy` y `demo` con `is_verified=True`
+  - savegametoys.md actualizado
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - Los usuarios de demo quedaban con `is_verified=False`, provocando 403 al hacer login. El seed ahora setea `is_verified`, `verification_sent_at` y `country` para ambos usuarios y se ejecutó nuevamente el comando.
+- Pruebas necesarias
+  - Correr `python manage.py seed_initial_data` y luego iniciar sesión con `boy/Prestige1$` o `demo/demo1234`.
+- Pendientes futuros
+  - Añadir indicadores en el panel admin para saber qué usuarios están verificados.
