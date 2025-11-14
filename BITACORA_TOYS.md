@@ -190,3 +190,13 @@
   - En el dashboard, hacer clic en "Ver archivo" para cualquier documento existente; debe abrirse el PDF/imagen real en una pestaña nueva.
 - Pendientes futuros
   - Añadir visor embebido dentro de la app usando un modal (posible cuando cambiemos la cabecera a ALLOW-FROM si se sirve en dominio distinto).
+## [2025-11-14 16:58] — Enlaces directos a documentos
+- Cambios:
+  - frontend/src/app/cars/[id]/page.tsx ahora resuelve URLs absolutas/relativas antes de renderizar "Ver archivo"
+  - savegametoys.md y tree_toys.txt regenerados
+- Descripción técnica
+  - DRF ya devuelve `document_file` como URL absoluto; al concatenar `apiBaseUrl` quedaban strings inválidos (`http://localhost:8000http://...`) y Chrome los bloqueaba mostrando `about:blank#blocked`. Se añadió `resolveFileUrl` para detectar `http(s)` y solo prefijar cuando el backend entregue rutas relativas.
+- Pruebas necesarias
+  - Abrir un vehículo con documentos y hacer clic en "Ver archivo"; el enlace debe apuntar a una URL válida que carga el PDF/imagen real.
+- Pendientes futuros
+  - Añadir fallback para mostrar mensaje si el archivo no existe (404) y un visor integrado dentro de la app.

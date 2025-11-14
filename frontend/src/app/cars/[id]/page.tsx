@@ -92,6 +92,15 @@ export default function CarDetailPage() {
   const { t } = useI18n();
   const apiBaseUrl =
     process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") || "http://localhost:8000";
+  const resolveFileUrl = (value?: string | null) => {
+    if (!value) {
+      return null;
+    }
+    if (/^https?:\/\//i.test(value)) {
+      return value;
+    }
+    return `${apiBaseUrl}${value}`;
+  };
   const [car, setCar] = useState<CarDetail | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("documents");
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -368,9 +377,7 @@ export default function CarDetailPage() {
                       (isValidLicense
                         ? t("carDetail.documents.validationMessages.valid")
                         : "");
-                    const fileUrl = doc.document_file
-                      ? `${apiBaseUrl}${doc.document_file}`
-                      : null;
+                    const fileUrl = resolveFileUrl(doc.document_file);
                     return (
                       <tr key={doc.id} className="hover:bg-neutral-900/70">
                         <td className="px-4 py-3 text-neutral-100">
