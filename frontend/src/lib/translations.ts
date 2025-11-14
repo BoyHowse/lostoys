@@ -251,6 +251,7 @@ const translations: Record<Locale, TranslationDictionary> = {
       },
       sections: {
         documents: "Documents",
+        soat: "SOAT",
         credits: "Credits",
         maintenance: "Maintenance",
         notifications: "Notifications",
@@ -325,6 +326,33 @@ const translations: Record<Locale, TranslationDictionary> = {
       timeline: {
         expiresPrefix: "Expires",
       },
+      soat: {
+        title: "SOAT monitoring",
+        subtitle: "We consult official SOAT services each time a policy is uploaded.",
+        refresh: "Refresh data",
+        refreshing: "Refreshing...",
+        loading: "Gathering SOAT information…",
+        documentData: "Document on file",
+        officialData: "Official lookup",
+        issueLabel: "Issue date",
+        expiryLabel: "Expiry date",
+        amountLabel: "Declared premium",
+        providerLabel: "Provider",
+        policyLabel: "Policy number",
+        insurerLabel: "Insurer",
+        responsibilities: "Coverage & responsibilities",
+        noResponsibilities: "The provider did not return coverage details.",
+        providerSource: "Source",
+        lastSync: "Last sync",
+        noSync: "Pending synchronization",
+        statusLabel: "Status",
+        statusUnknown: "Unknown",
+        errorTitle: "SOAT lookup failed",
+        emptyTitle: "No SOAT document",
+        emptyDescription:
+          "Upload the SOAT document for this vehicle to enable automated cross-checks.",
+        noDate: "No date",
+      },
     },
     placeholders: {
       documents:
@@ -338,6 +366,7 @@ const translations: Record<Locale, TranslationDictionary> = {
     },
     errors: {
       loadCar: "Unable to load car",
+      loadSoat: "Unable to load SOAT information",
     },
   },
   es: {
@@ -591,6 +620,7 @@ const translations: Record<Locale, TranslationDictionary> = {
       },
       sections: {
         documents: "Documentos",
+        soat: "SOAT",
         credits: "Créditos",
         maintenance: "Mantenimientos",
         notifications: "Notificaciones",
@@ -665,6 +695,34 @@ const translations: Record<Locale, TranslationDictionary> = {
       timeline: {
         expiresPrefix: "Expira",
       },
+      soat: {
+        title: "Seguimiento del SOAT",
+        subtitle:
+          "Cada vez que adjuntas la póliza consultamos la información oficial disponible.",
+        refresh: "Actualizar consulta",
+        refreshing: "Actualizando...",
+        loading: "Consultando información oficial…",
+        documentData: "Documento registrado",
+        officialData: "Consulta oficial",
+        issueLabel: "Fecha de expedición",
+        expiryLabel: "Fecha de vencimiento",
+        amountLabel: "Prima declarada",
+        providerLabel: "Proveedor registrado",
+        policyLabel: "Número de póliza",
+        insurerLabel: "Aseguradora oficial",
+        responsibilities: "Coberturas y responsabilidades",
+        noResponsibilities: "El proveedor no entregó detalle de coberturas.",
+        providerSource: "Fuente",
+        lastSync: "Última sincronización",
+        noSync: "Pendiente por sincronizar",
+        statusLabel: "Estado",
+        statusUnknown: "Desconocido",
+        errorTitle: "No pudimos consultar el SOAT",
+        emptyTitle: "Sin SOAT registrado",
+        emptyDescription:
+          "Carga la póliza SOAT para habilitar la consulta automática de vencimientos y coberturas.",
+        noDate: "Sin dato",
+      },
     },
     placeholders: {
       documents:
@@ -678,6 +736,7 @@ const translations: Record<Locale, TranslationDictionary> = {
     },
     errors: {
       loadCar: "No fue posible cargar el vehículo",
+      loadSoat: "No fue posible obtener datos del SOAT",
     },
   },
 };

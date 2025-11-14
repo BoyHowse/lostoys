@@ -29,6 +29,10 @@ class DocumentSerializer(serializers.ModelSerializer):
             "is_license_valid",
             "license_validation_message",
             "status_indicator",
+            "external_status",
+            "external_source",
+            "external_payload",
+            "external_fetched_at",
             "created_at",
             "updated_at",
         )
@@ -45,6 +49,10 @@ class DocumentSerializer(serializers.ModelSerializer):
             "license_metadata",
             "is_license_valid",
             "license_validation_message",
+            "external_status",
+            "external_source",
+            "external_payload",
+            "external_fetched_at",
         )
 
     def validate(self, attrs):

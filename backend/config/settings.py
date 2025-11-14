@@ -224,6 +224,12 @@ DEFAULT_FROM_EMAIL = "LosToys <wwwlostoys@gmail.com>"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 X_FRAME_OPTIONS = "SAMEORIGIN"
+SOAT_PROVIDER_URL = os.getenv("SOAT_PROVIDER_URL", "")
+SOAT_PROVIDER_TOKEN = os.getenv("SOAT_PROVIDER_TOKEN", "")
+SOAT_PROVIDER_TIMEOUT = int(os.getenv("SOAT_PROVIDER_TIMEOUT", "12"))
+SOAT_MOCK_DATA_PATH = os.getenv(
+    "SOAT_MOCK_DATA_PATH", str(BASE_DIR / "data" / "mock_soat_dataset.json")
+)
 
 LOGGING = {
     "version": 1,

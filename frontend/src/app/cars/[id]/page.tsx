@@ -8,7 +8,7 @@ import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import { useAuth } from "@/context/AuthContext";
 import { useI18n } from "@/context/I18nContext";
-import { get } from "@/lib/fetcher";
+import { get, post } from "@/lib/fetcher";
 
 type Document = {
   id: number;
@@ -24,6 +24,10 @@ type Document = {
   ai_feedback?: string;
   is_license_valid?: boolean;
   license_validation_message?: string;
+  external_payload?: Record<string, unknown> | null;
+  external_status?: string | null;
+  external_source?: string | null;
+  external_fetched_at?: string | null;
 };
 
 type Credit = {
@@ -69,7 +73,30 @@ type Notification = {
   reference_model?: string;
 };
 
-type TabKey = "documents" | "credits" | "maintenance" | "notifications" | "history";
+type SoatSnapshot = {
+  document: Document | null;
+  external: {
+    status?: string;
+    source?: string;
+    fetched_at?: string | null;
+    policy_number?: string | null;
+    insurer?: string | null;
+    issue_date?: string | null;
+    expiry_date?: string | null;
+    premium?: number | string | null;
+    responsibilities?: string[];
+    payload?: Record<string, unknown> | null;
+  } | null;
+  success?: boolean;
+};
+
+type TabKey =
+  | "documents"
+  | "soat"
+  | "credits"
+  | "maintenance"
+  | "notifications"
+  | "history";
 
 const statusClasses: Record<string, string> = {
   red: "border-rose-500/40 bg-rose-500/10 text-rose-200",
@@ -106,9 +133,14 @@ export default function CarDetailPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [soatSnapshot, setSoatSnapshot] = useState<SoatSnapshot | null>(null);
+  const [soatLoading, setSoatLoading] = useState(false);
+  const [soatError, setSoatError] = useState<string | null>(null);
+  const [refreshingSoat, setRefreshingSoat] = useState(false);
 
   const tabLabels: Record<TabKey, string> = {
     documents: t("carDetail.sections.documents"),
+    soat: t("carDetail.sections.soat"),
     credits: t("carDetail.sections.credits"),
     maintenance: t("carDetail.sections.maintenance"),
     notifications: t("carDetail.sections.notifications"),
@@ -147,6 +179,44 @@ export default function CarDetailPage() {
     pending: t("common.statuses.alerts.pending"),
   };
 
+  const formatCurrency = (value?: string | number | null) => {
+    if (value === null || value === undefined || value === "") {
+      return "—";
+    }
+    const numeric =
+      typeof value === "number" ? value : Number.parseFloat(String(value));
+    if (Number.isNaN(numeric)) {
+      return String(value);
+    }
+    return numeric.toLocaleString();
+  };
+
+  const formatDateValue = (value?: string | null) => {
+    if (!value) {
+      return t("carDetail.soat.noDate");
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toLocaleDateString();
+  };
+
+  const soatDocument = soatSnapshot?.document || null;
+  const soatExternal = soatSnapshot?.external || null;
+  const soatResponsibilities =
+    ((soatExternal?.responsibilities ?? []) as string[]).filter(Boolean);
+  const soatStatusClass = (() => {
+    const status = (soatExternal?.status || "").toLowerCase();
+    if (status.includes("vigen")) {
+      return statusClasses.green;
+    }
+    if (status.includes("expir") || status.includes("venc")) {
+      return statusClasses.red;
+    }
+    return statusClasses.yellow;
+  })();
+
   useEffect(() => {
     if (!user || loading || !carId) {
       return;
@@ -164,6 +234,27 @@ export default function CarDetailPage() {
       })
       .finally(() => setFetching(false));
   }, [user, loading, carId, t]);
+
+  useEffect(() => {
+    if (activeTab !== "soat" || !carId) {
+      return;
+    }
+    setSoatLoading(true);
+    setSoatError(null);
+    get(`/api/cars/${carId}/soat/`)
+      .then((data) => {
+        setSoatSnapshot(data);
+      })
+      .catch((err: Error & { status?: number; payload?: { message?: string } }) => {
+        setSoatSnapshot(null);
+        if (err.status === 404) {
+          setSoatError(null);
+          return;
+        }
+        setSoatError(err.payload?.message || err.message || t("errors.loadSoat"));
+      })
+      .finally(() => setSoatLoading(false));
+  }, [activeTab, carId, t]);
 
   const carNotifications = useMemo(() => {
     if (!car) return [];
@@ -197,6 +288,28 @@ export default function CarDetailPage() {
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
     );
   }, [car, t]);
+
+  const handleRefreshSoat = async () => {
+    if (!carId) {
+      return;
+    }
+    setRefreshingSoat(true);
+    try {
+      const data = await post(`/api/cars/${carId}/soat/`, {});
+      setSoatSnapshot(data);
+      setSoatError(null);
+    } catch (error) {
+      const err = error as Error & { status?: number; payload?: { message?: string } };
+      if (err.status === 404) {
+        setSoatSnapshot(null);
+        setSoatError(null);
+      } else {
+        setSoatError(err.payload?.message || err.message || t("errors.loadSoat"));
+      }
+    } finally {
+      setRefreshingSoat(false);
+    }
+  };
 
   const documentsWithWarnings = useMemo(
     () => car?.documents.filter((doc) => doc.ai_status === "warning") ?? [],
@@ -438,6 +551,167 @@ export default function CarDetailPage() {
                 </tbody>
               </table>
             </div>
+          )}
+        </section>
+      )}
+
+      {activeTab === "soat" && (
+        <section className="space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-semibold text-neutral-200">
+                {t("carDetail.soat.title")}
+              </h2>
+              <p className="text-sm text-neutral-400">
+                {t("carDetail.soat.subtitle")}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handleRefreshSoat}
+              disabled={refreshingSoat || soatLoading}
+              className="rounded-full border border-gold px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-gold transition hover:bg-gold hover:text-black disabled:opacity-60"
+            >
+              {refreshingSoat
+                ? t("carDetail.soat.refreshing")
+                : t("carDetail.soat.refresh")}
+            </button>
+          </div>
+          {soatLoading ? (
+            <div className="rounded-2xl border border-neutral-800 bg-neutral-900/60 px-6 py-10 text-center text-sm text-neutral-300">
+              {t("carDetail.soat.loading")}
+            </div>
+          ) : soatError ? (
+            <div className="rounded-2xl border border-rose-600/50 bg-rose-950/30 px-6 py-5 text-sm text-rose-100">
+              <p className="font-semibold uppercase tracking-[0.3em]">
+                {t("carDetail.soat.errorTitle")}
+              </p>
+              <p className="mt-1 text-rose-50/90">{soatError}</p>
+            </div>
+          ) : soatDocument ? (
+            <div className="grid gap-6 md:grid-cols-2">
+              <article className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+                <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                  {t("carDetail.soat.documentData")}
+                </p>
+                <h3 className="mt-2 text-xl font-semibold text-gold">
+                  {car.brand} {car.model} ({car.plate})
+                </h3>
+                <dl className="mt-4 space-y-2 text-sm text-neutral-300">
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.issueLabel")}</dt>
+                    <dd>{formatDateValue(soatDocument.issue_date)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.expiryLabel")}</dt>
+                    <dd>{formatDateValue(soatDocument.expiry_date)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.amountLabel")}</dt>
+                    <dd>${formatCurrency(soatDocument.amount)}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.providerLabel")}</dt>
+                    <dd>{soatDocument.provider || "—"}</dd>
+                  </div>
+                </dl>
+                <p className="mt-4 text-xs uppercase tracking-[0.3em] text-neutral-500">
+                  {t("carDetail.soat.statusLabel")}
+                </p>
+                <span
+                  className={`mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${
+                    statusClasses[soatDocument.status_indicator] ||
+                    statusClasses.green
+                  }`}
+                >
+                  {statusIndicatorLabels[soatDocument.status_indicator] ||
+                    soatDocument.status_indicator}
+                </span>
+              </article>
+              <article className="rounded-2xl border border-neutral-800 bg-neutral-900/50 p-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                    {t("carDetail.soat.officialData")}
+                  </p>
+                  <span
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${soatStatusClass}`}
+                  >
+                    {soatExternal?.status || t("carDetail.soat.statusUnknown")}
+                  </span>
+                </div>
+                <dl className="mt-4 space-y-2 text-sm text-neutral-300">
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.policyLabel")}</dt>
+                    <dd>{soatExternal?.policy_number || "—"}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.insurerLabel")}</dt>
+                    <dd>{soatExternal?.insurer || soatDocument.provider || "—"}</dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.issueLabel")}</dt>
+                    <dd>
+                      {formatDateValue(
+                        soatExternal?.issue_date || soatDocument.issue_date,
+                      )}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.expiryLabel")}</dt>
+                    <dd>
+                      {formatDateValue(
+                        soatExternal?.expiry_date || soatDocument.expiry_date,
+                      )}
+                    </dd>
+                  </div>
+                  <div className="flex justify-between">
+                    <dt>{t("carDetail.soat.amountLabel")}</dt>
+                    <dd>
+                      $
+                      {formatCurrency(
+                        soatExternal?.premium ?? soatDocument.amount,
+                      )}
+                    </dd>
+                  </div>
+                </dl>
+                <div className="mt-4">
+                  <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                    {t("carDetail.soat.responsibilities")}
+                  </p>
+                  {soatResponsibilities.length > 0 ? (
+                    <ul className="mt-2 space-y-2 text-sm text-neutral-300">
+                      {soatResponsibilities.map((item) => (
+                        <li key={item} className="flex items-start gap-2">
+                          <span className="mt-1 h-2 w-2 rounded-full bg-gold" />
+                          <span>{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mt-2 text-sm text-neutral-400">
+                      {t("carDetail.soat.noResponsibilities")}
+                    </p>
+                  )}
+                </div>
+                <div className="mt-4 text-xs text-neutral-500">
+                  <p>
+                    {t("carDetail.soat.providerSource")}:{" "}
+                    {soatExternal?.source || t("carDetail.soat.statusUnknown")}
+                  </p>
+                  <p>
+                    {t("carDetail.soat.lastSync")}:{" "}
+                    {soatExternal?.fetched_at
+                      ? new Date(soatExternal.fetched_at).toLocaleString()
+                      : t("carDetail.soat.noSync")}
+                  </p>
+                </div>
+              </article>
+            </div>
+          ) : (
+            <EmptyState
+              title={t("carDetail.soat.emptyTitle")}
+              description={t("carDetail.soat.emptyDescription")}
+            />
           )}
         </section>
       )}

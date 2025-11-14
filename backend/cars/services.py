@@ -7,8 +7,12 @@ import logging
 import mimetypes
 import threading
 from dataclasses import dataclass
-from datetime import datetime
-from typing import Any, Iterable
+from datetime import date, datetime
+from decimal import Decimal, InvalidOperation
+from pathlib import Path
+from typing import Any, Iterable, Optional
+
+import httpx
 
 from django.conf import settings
 from django.db import close_old_connections
@@ -237,6 +241,74 @@ class DocumentAIService:
         return json.loads(cleaned)
 
 
+@dataclass
+class SoatLookupResult:
+    plate: str
+    policy_number: Optional[str]
+    insurer: Optional[str]
+    issue_date: Optional[date]
+    expiry_date: Optional[date]
+    premium: Optional[Decimal]
+    responsibilities: list[str]
+    status: str
+    source: str
+    payload: dict[str, Any]
+
+
+class SoatLookupService:
+    """Fetch SOAT data from configured provider (or mock fallback)."""
+
+    def __init__(self, document_id: int):
+        self.document_id = document_id
+
+    def run(self) -> bool:
+        document = (
+            Document.objects.select_related("car__user").filter(pk=self.document_id).first()
+        )
+        if not document:
+            logger.warning("Documento %s no existe para SOAT.", self.document_id)
+            return False
+        if document.type != Document.DocumentType.SOAT:
+            logger.debug(
+                "Documento %s no es SOAT (tipo=%s); se omite lookup.",
+                self.document_id,
+                document.type,
+            )
+            return False
+
+        result = lookup_soat_payload(document.car.plate)
+        if not result:
+            logger.info("No se encontró información SOAT para la placa %s.", document.car.plate)
+            return False
+
+        document.external_payload = result.payload
+        document.external_source = result.source
+        document.external_status = result.status
+        document.external_fetched_at = timezone.now()
+        update_fields = [
+            "external_payload",
+            "external_source",
+            "external_status",
+            "external_fetched_at",
+        ]
+
+        if result.issue_date:
+            document.issue_date = result.issue_date
+            update_fields.append("issue_date")
+        if result.expiry_date:
+            document.expiry_date = result.expiry_date
+            update_fields.append("expiry_date")
+        if result.premium is not None:
+            document.amount = result.premium
+            update_fields.append("amount")
+        if result.insurer and not document.provider:
+            document.provider = result.insurer
+            update_fields.append("provider")
+
+        document.save(update_fields=update_fields)
+        return True
+
+
 def enqueue_license_analysis(document_id: int) -> None:
     def _run():
         close_old_connections()
@@ -246,3 +318,122 @@ def enqueue_license_analysis(document_id: int) -> None:
             close_old_connections()
 
     threading.Thread(target=_run, daemon=True).start()
+
+
+def lookup_soat_payload(plate: str) -> Optional[SoatLookupResult]:
+    plate = (plate or "").upper()
+    if not plate:
+        return None
+    payload = None
+    provider_url = getattr(settings, "SOAT_PROVIDER_URL", "")
+    if provider_url:
+        try:
+            payload = _fetch_from_provider(provider_url, plate)
+        except Exception:
+            logger.exception("Fallo consultando proveedor SOAT oficial.")
+    if not payload:
+        try:
+            payload = _load_mock_soat_entry(plate)
+        except Exception:
+            logger.exception("No se pudo cargar el mock de SOAT.")
+    if not payload:
+        return None
+    return _normalize_soat_payload(payload, plate)
+
+
+def _fetch_from_provider(url: str, plate: str) -> dict[str, Any]:
+    headers = {}
+    token = getattr(settings, "SOAT_PROVIDER_TOKEN", "")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    timeout = getattr(settings, "SOAT_PROVIDER_TIMEOUT", 12)
+    response = httpx.get(
+        url,
+        params={"plate": plate},
+        headers=headers,
+        timeout=timeout,
+    )
+    response.raise_for_status()
+    data = response.json()
+    if isinstance(data, list) and data:
+        return data[0]
+    return data
+
+
+def _load_mock_soat_entry(plate: str) -> Optional[dict[str, Any]]:
+    mock_path = getattr(settings, "SOAT_MOCK_DATA_PATH", "")
+    if not mock_path:
+        return None
+    path = Path(mock_path)
+    if not path.exists():
+        return None
+    with path.open(encoding="utf-8") as handler:
+        entries = json.load(handler)
+    for entry in entries:
+        if entry.get("plate", "").upper() == plate.upper():
+            return entry
+    return None
+
+
+def _normalize_soat_payload(payload: dict[str, Any], plate: str) -> SoatLookupResult:
+    body = payload.get("data") if isinstance(payload.get("data"), dict) else payload
+    policy = body.get("policy") if isinstance(body.get("policy"), dict) else body
+    responsibilities = policy.get("responsibilities") or policy.get("coverages") or policy.get("covers") or []
+    if isinstance(responsibilities, str):
+        responsibilities_list = [responsibilities]
+    else:
+        responsibilities_list = [str(item) for item in responsibilities] if isinstance(responsibilities, Iterable) else []
+    premium = _to_decimal(policy.get("premium") or policy.get("valor") or policy.get("amount"))
+    return SoatLookupResult(
+        plate=plate,
+        policy_number=policy.get("policy_number") or policy.get("policyNumber"),
+        insurer=policy.get("insurer") or policy.get("aseguradora") or policy.get("company"),
+        issue_date=_parse_date_value(policy.get("issue_date") or policy.get("issueDate")),
+        expiry_date=_parse_date_value(policy.get("expiry_date") or policy.get("expiryDate")),
+        premium=premium,
+        responsibilities=responsibilities_list,
+        status=str(policy.get("status") or "fetched").lower(),
+        source=payload.get("source")
+        or ("SOAT Provider" if getattr(settings, "SOAT_PROVIDER_URL", "") else "LosToys Mock Dataset"),
+        payload=payload,
+    )
+
+
+def _parse_date_value(value: Any) -> Optional[date]:
+    if not value:
+        return None
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    if isinstance(value, str):
+        for fmt in ("%Y-%m-%d", "%d/%m/%Y", "%d-%m-%Y"):
+            try:
+                return datetime.strptime(value.strip(), fmt).date()
+            except ValueError:
+                continue
+    return None
+
+
+def _to_decimal(value: Any) -> Optional[Decimal]:
+    if value in (None, ""):
+        return None
+    try:
+        return Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
+
+
+def enqueue_soat_lookup(document_id: int) -> None:
+    def _run():
+        close_old_connections()
+        try:
+            SoatLookupService(document_id).run()
+        finally:
+            close_old_connections()
+
+    threading.Thread(target=_run, daemon=True).start()
+
+
+def run_soat_lookup(document_id: int) -> bool:
+    return SoatLookupService(document_id).run()

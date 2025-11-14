@@ -205,3 +205,17 @@ Archivos modificados:
 - BITACORA_TOYS.md
 - savegametoys.md
 
+## [2025-11-14 17:05] — Panel SOAT + consulta externa
+- Cambios:
+  - backend/cars/models.py agrega campos `external_*` al modelo Document + migración 0004
+  - backend/cars/services.py incorpora `SoatLookupService`, mock dataset y nuevos helpers
+  - backend/cars/views.py y urls exponen `/api/cars/<id>/soat/` con refresco
+  - frontend/src/app/cars/[id]/page.tsx añade la pestaña SOAT y llamadas GET/POST
+  - frontend/src/lib/translations.ts, savegametoys.md, backend/data/mock_soat_dataset.json documentan el flujo
+- Descripción técnica
+  - Cada documento tipo SOAT dispara `SoatLookupService`, que intenta consultar `SOAT_PROVIDER_URL` (o el mock `backend/data/mock_soat_dataset.json`) y guarda la respuesta en `Document.external_*`. Se añadió el endpoint `/api/cars/:id/soat/` para obtener la última consulta y forzar un refresh. El dashboard suma una pestaña dedicada que muestra estado oficial, coberturas y la información del documento local.
+- Pruebas necesarias
+  - Crear/actualizar un documento SOAT y verificar que `/api/cars/<id>/soat/` retorna `external` con los datos del mock.
+  - Desde el frontend, abrir la pestaña SOAT y pulsar “Actualizar consulta” para confirmar que el estado cambia y se muestra el detalle.
+- Pendientes futuros
+  - Integrar un proveedor oficial (RUNT/Fasecolda) y agregar manejo de errores específicos o reintentos programados.

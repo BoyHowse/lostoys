@@ -98,6 +98,10 @@ class Document(TimeStampedModel):
     license_metadata = models.JSONField(blank=True, null=True)
     is_license_valid = models.BooleanField(default=False)
     license_validation_message = models.CharField(max_length=255, blank=True)
+    external_status = models.CharField(max_length=50, blank=True)
+    external_source = models.CharField(max_length=120, blank=True)
+    external_payload = models.JSONField(blank=True, null=True)
+    external_fetched_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         ordering = ["expiry_date"]
