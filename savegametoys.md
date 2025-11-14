@@ -26,8 +26,9 @@ Este documento se regenera cada vez que corremos el flujo SaveGameToys para deja
 - Backend: Django 5, DRF 3.15, celery 5.3, twilio 9, openai 1.40.2, pypdfium2 4.30, Pillow 10.4.
 - Frontend: Next.js 15, TailwindCSS, TypeScript, tsx (para scripts).
 
-## 6. Estado de entorno
+## 6. Estado de entorno / Base de datos
 - 2025-11-14: se recreó `backend/venv` y se reinstalaron dependencias (`pip install -r requirements.txt`) luego de que el entorno anterior fuera eliminado; esto corrige el error `technical_500.html` al servir páginas de error.
+- 2025-11-14: el backend ahora apunta a **PostgreSQL** (`lostoys_dev` en `localhost:5432`) usando `lostoys_user / LosToysDev1$`. Para volver a SQLite basta con poner `USE_SQLITE=true` en `.env`.
 
 ## 7. TODO / Roadmap
 - Migrar pipeline AI a Celery/Redis en lugar de threads.

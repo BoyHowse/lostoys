@@ -115,3 +115,16 @@
   - Correr `python manage.py seed_initial_data` y luego iniciar sesión con `boy/Prestige1$` o `demo/demo1234`.
 - Pendientes futuros
   - Añadir indicadores en el panel admin para saber qué usuarios están verificados.
+
+## [$(date '+%Y-%m-%d %H:%M')] — Migración local a PostgreSQL
+- Cambios:
+  - backend/.env (local) apuntando a lostoys_dev en Postgres
+  - backend/.env.example documenta USE_SQLITE
+  - savegametoys.md actualizado con la nueva configuración
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - Se creó la BD `lostoys_dev` y el usuario `lostoys_user`; Django quedó configurado con `USE_SQLITE=false` y credenciales Postgres, luego se ejecutaron `python manage.py migrate` y `seed_initial_data` para poblarla.
+- Pruebas necesarias
+  - `python manage.py runserver` y verificar `/api/accounts/login/` y `/api/accounts/me/` apuntando a la nueva DB.
+- Pendientes futuros
+  - Considerar scripts para crear la DB automáticamente (Makefile o management command).
