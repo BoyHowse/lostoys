@@ -1,0 +1,22 @@
+#!/bin/bash
+
+echo "=== SaveGame Toys iniciado ==="
+
+# 1. Regenerar SAVEGAME usando Typescript
+npx tsx scripts/generate_savegametoys.ts
+
+# 2. Agregar entrada a BITACORA_TOYS.md
+echo "## [$(date '+%Y-%m-%d %H:%M')] — SaveGame Update" >> BITACORA_TOYS.md
+echo "Archivos modificados:" >> BITACORA_TOYS.md
+git diff --name-only | sed 's/^/- /' >> BITACORA_TOYS.md
+echo "" >> BITACORA_TOYS.md
+
+# 3. Regenerar tree del proyecto
+tree -I "node_modules|.venv|env|static" > tree_toys.txt
+
+# 4. Commit y Push
+git add .
+git commit -m "SaveGameToys Update — $(date '+%Y-%m-%d %H:%M:%S')"
+git push origin main
+
+echo "=== SaveGame Toys completado ==="

@@ -16,3 +16,17 @@
 - Pendientes futuros
   - Integrar Celery/Redis para el pipeline AI.
   - Implementar UI/alerts para resultados AI en tiempo real.
+## [$(date '+%Y-%m-%d %H:%M')] — Setup comando savegametoys automatizado
+- Cambios:
+  - savegametoys creado/actualizado
+  - scripts/generate_savegametoys.ts creado
+  - savegametoys.md regenerado con plantilla de comando
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - Se añadió un script root sin extensión que orquesta regeneración del savegame (vía `npx tsx`), bitácora incremental, snapshot del árbol y commit/push automático.
+  - Se creó `scripts/generate_savegametoys.ts` que reescribe `savegametoys.md` con la plantilla base; el comando lo invoca mediante `npx tsx`.
+  - Se volvió a ejecutar la plantilla inicial para garantizar consistencia y se actualizó el snapshot del árbol del repo.
+- Pruebas necesarias
+  - Ejecutar `./savegametoys "mensaje"` y verificar que regenere savegame, bitácora y realice push sin errores.
+- Pendientes futuros
+  - Reemplazar el placeholder de la plantilla con generación dinámica del contenido real.

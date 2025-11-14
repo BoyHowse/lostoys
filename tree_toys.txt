@@ -126,9 +126,11 @@
 |-- logs
 |   |-- bitacora.md
 |   `-- tree-latest.txt
+|-- savegametoys
 |-- savegametoys.md
 |-- scripts
+|   |-- generate_savegametoys.ts
 |   `-- savegametoys.sh
 `-- tree_toys.txt
 
-39 directories, 93 files
+39 directories, 95 files
