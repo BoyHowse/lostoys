@@ -8,7 +8,7 @@ import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import { useAuth } from "@/context/AuthContext";
 import { useI18n } from "@/context/I18nContext";
-import { get, post } from "@/lib/fetcher";
+import { del as delRequest, get, post } from "@/lib/fetcher";
 
 type Document = {
   id: number;
@@ -134,6 +134,8 @@ export default function CarDetailPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [fetching, setFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [docActionError, setDocActionError] = useState<string | null>(null);
+  const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(null);
   const [soatSnapshot, setSoatSnapshot] = useState<SoatSnapshot | null>(null);
   const [soatLoading, setSoatLoading] = useState(false);
   const [soatError, setSoatError] = useState<string | null>(null);
@@ -336,6 +338,39 @@ export default function CarDetailPage() {
     [car],
   );
 
+  const refreshCar = async () => {
+    if (!carId) {
+      return;
+    }
+    const updatedCar = await get(`/api/cars/${carId}/`);
+    setCar(updatedCar);
+  };
+
+  const handleDeleteDocument = async (docId: number) => {
+    if (!carId) {
+      return;
+    }
+    if (
+      typeof window !== "undefined" &&
+      !window.confirm(t("carDetail.documents.confirmDelete"))
+    ) {
+      return;
+    }
+    setDocActionError(null);
+    setDeletingDocumentId(docId);
+    try {
+      await delRequest(`/api/documents/${docId}/`);
+      await refreshCar();
+    } catch (error) {
+      const err = error as Error & { payload?: { detail?: string } };
+      setDocActionError(
+        err.payload?.detail || err.message || t("errors.documentDelete"),
+      );
+    } finally {
+      setDeletingDocumentId(null);
+    }
+  };
+
   if (loading || fetching) {
     return <LoadingState message={t("loading.loadingVehicle")} />;
   }
@@ -458,6 +493,11 @@ export default function CarDetailPage() {
               </p>
             </div>
           )}
+          {docActionError && (
+            <div className="rounded-2xl border border-rose-600/60 bg-rose-950/30 px-4 py-3 text-sm text-rose-100">
+              {docActionError}
+            </div>
+          )}
           {car.documents.length === 0 ? (
             <EmptyState
               title={t("carDetail.documents.emptyTitle")}
@@ -558,14 +598,26 @@ export default function CarDetailPage() {
                         </td>
                         <td className="px-4 py-3">
                           {fileUrl ? (
-                            <a
-                              href={fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex rounded-full border border-neutral-700 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-200 transition hover:border-gold hover:text-gold"
-                            >
-                              {t("carDetail.documents.actions.viewFile")}
-                            </a>
+                            <div className="flex flex-wrap gap-2">
+                              <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex rounded-full border border-neutral-700 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-200 transition hover:border-gold hover:text-gold"
+                              >
+                                {t("carDetail.documents.actions.viewFile")}
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteDocument(doc.id)}
+                                disabled={deletingDocumentId === doc.id}
+                                className="inline-flex rounded-full border border-rose-600/70 px-3 py-1 text-xs uppercase tracking-[0.3em] text-rose-200 transition hover:border-rose-400 disabled:opacity-50"
+                              >
+                                {deletingDocumentId === doc.id
+                                  ? t("carDetail.documents.actions.deleting")
+                                  : t("carDetail.documents.actions.delete")}
+                              </button>
+                            </div>
                           ) : (
                             <span className="text-neutral-500">—</span>
                           )}

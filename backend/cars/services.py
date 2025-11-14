@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Iterable, Optional
 
 import httpx
+import openai
 
 from django.conf import settings
 from django.db import close_old_connections
@@ -57,6 +58,10 @@ class DocumentAIService:
 
         try:
             payload = self._call_openai(document, api_key)
+        except openai.RateLimitError as exc:  # pragma: no cover - dependencia externa
+            logger.warning("OpenAI rate limit para documento %s", document.pk)
+            self._mark_rate_limit(document, exc)
+            return
         except Exception as exc:  # pragma: no cover - resiliencia IO
             logger.exception("Fallo analizando documento %s", document.pk)
             self._mark_failure(document, f"No se pudo procesar el documento: {exc}")
@@ -195,6 +200,15 @@ class DocumentAIService:
 
     def _mark_failure(self, document: Document, message: str) -> None:
         document.ai_status = Document.AIStatus.FAILED
+        document.ai_feedback = message
+        document.ai_checked_at = timezone.now()
+        document.save(update_fields=["ai_status", "ai_feedback", "ai_checked_at"])
+
+    def _mark_rate_limit(self, document: Document, exc: Exception) -> None:
+        message = (
+            "Servicio de IA temporalmente saturado. Intenta nuevamente en unos minutos."
+        )
+        document.ai_status = Document.AIStatus.WARNING
         document.ai_feedback = message
         document.ai_checked_at = timezone.now()
         document.save(update_fields=["ai_status", "ai_feedback", "ai_checked_at"])

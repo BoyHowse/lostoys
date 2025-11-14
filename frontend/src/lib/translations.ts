@@ -290,6 +290,8 @@ const translations: Record<Locale, TranslationDictionary> = {
         warningCountLabel: "documents",
         actions: {
           viewFile: "View file",
+          delete: "Delete",
+          deleting: "Deleting...",
         },
         badges: {
           valid: "Valid",
@@ -298,6 +300,7 @@ const translations: Record<Locale, TranslationDictionary> = {
         validationMessages: {
           valid: "Document verified successfully.",
         },
+        confirmDelete: "Are you sure you want to delete this document?",
       },
       credits: {
         emptyTitle: "No credits",
@@ -367,6 +370,7 @@ const translations: Record<Locale, TranslationDictionary> = {
     },
     errors: {
       loadCar: "Unable to load car",
+      documentDelete: "We couldn't delete the document. Please try again.",
       loadSoat: "Unable to load SOAT information",
     },
   },
@@ -660,6 +664,8 @@ const translations: Record<Locale, TranslationDictionary> = {
         warningCountLabel: "documentos",
         actions: {
           viewFile: "Ver archivo",
+          delete: "Eliminar",
+          deleting: "Eliminando...",
         },
         badges: {
           valid: "Válido",
@@ -668,6 +674,7 @@ const translations: Record<Locale, TranslationDictionary> = {
         validationMessages: {
           valid: "Documento verificado correctamente.",
         },
+        confirmDelete: "¿Seguro que deseas eliminar este documento?",
       },
       credits: {
         emptyTitle: "Sin créditos",
@@ -738,6 +745,7 @@ const translations: Record<Locale, TranslationDictionary> = {
     },
     errors: {
       loadCar: "No fue posible cargar el vehículo",
+      documentDelete: "No pudimos eliminar el documento. Intenta de nuevo.",
       loadSoat: "No fue posible obtener datos del SOAT",
     },
   },

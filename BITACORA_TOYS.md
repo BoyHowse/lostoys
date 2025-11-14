@@ -241,3 +241,16 @@ Archivos modificados:
   - Abrir un vehículo con licencia cargada y verificar que las columnas muestran fechas legibles (ej. 13/11/2025).
 - Pendientes futuros
   - Mostrar la zona horaria del usuario si personalizamos más adelante.
+## [2025-11-14 18:57] — Borrado de documentos + manejo de rate limit
+- Cambios:
+  - backend/cars/services.py captura `openai.RateLimitError` y marca el documento en WARNING con un mensaje legible en lugar de dejarlo colgado en “Procesando”.
+  - frontend/src/app/cars/[id]/page.tsx permite eliminar documentos (botón junto a “Ver archivo”), muestra mensajes de error y vuelve a cargar el vehículo; además añade confirmación y estado “Eliminando…”.
+  - frontend/src/lib/translations.ts incorpora los textos para eliminar/errores.
+  - backend/cars/management/commands/reprocess_licenses.py permite reprocesar licencias desde CLI.
+- Descripción técnica
+  - Se añadió `delRequest` en el frontend para invocar `DELETE /api/documents/:id/`; tras eliminar, se vuelve a consultar `/api/cars/:id/` para actualizar la tabla. En backend se maneja el límite de OpenAI y se ofrece un comando `python manage.py reprocess_licenses --id <doc>` para volver a correr el OCR.
+- Pruebas necesarias
+  - Subir un documento, eliminarlo desde el dashboard y comprobar que desaparece sin recargar la página.
+  - Simular rate limit (o forzarlo) y verificar que el documento queda marcado en rojo con el mensaje “Servicio de IA temporalmente saturado”.
+- Pendientes futuros
+  - Exponer en la UI un botón “Reintentar análisis” que invoque internamente el comando/servicio sin pasar por la consola.
