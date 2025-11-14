@@ -140,3 +140,20 @@
   - GET `/api/cars/` y `/api/cars/<id>/` (en especial el vehículo recién creado con AI) para confirmar que el health_status se calcula correctamente.
 - Pendientes futuros
   - Agregar tests unitarios que cubran `Car.health_status` y flujos de documentos AI.
+
+## [$(date '+%Y-%m-%d %H:%M')] — Licencia de tránsito: metadata + UI
+- Cambios:
+  - backend/cars/models.py agrega campos `license_metadata`, `is_license_valid`, `license_validation_message`
+  - backend/cars/services.py llena esos campos, actualiza fechas y mensajes y corrige provider/notas
+  - backend/cars/migrations/0003... añade las columnas
+  - backend/cars/serializers.py expone los campos en la API
+  - frontend/src/app/cars/[id]/page.tsx muestra el chip “VÁLIDO”/mensaje de error y usa `<a>` para ver archivos
+  - frontend/src/lib/translations.ts agrega textos para las nuevas etiquetas
+  - savegametoys.md documenta el flujo
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - Ahora, al detectar “Licencia de Tránsito”, la IA guarda los campos estructurados (`license_metadata`), ajusta issue/expiry y marca `is_license_valid`. El frontend refleja el estado con mensajes claros y el enlace “Ver archivo” abre correctamente en una pestaña.
+- Pruebas necesarias
+  - Subir una licencia de tránsito legible y verificar que el documento pase a “VÁLIDO” y las fechas se autocompleten.
+- Pendientes futuros
+  - Mostrar el detalle de `license_metadata` en un modal o ficha dedicada.

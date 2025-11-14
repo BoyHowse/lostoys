@@ -25,6 +25,9 @@ class DocumentSerializer(serializers.ModelSerializer):
             "ai_feedback",
             "ai_checked_at",
             "ai_payload",
+            "license_metadata",
+            "is_license_valid",
+            "license_validation_message",
             "status_indicator",
             "created_at",
             "updated_at",
@@ -39,6 +42,9 @@ class DocumentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "status_indicator",
+            "license_metadata",
+            "is_license_valid",
+            "license_validation_message",
         )
 
     def validate(self, attrs):

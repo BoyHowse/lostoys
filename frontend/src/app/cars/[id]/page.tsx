@@ -22,6 +22,8 @@ type Document = {
   document_file?: string | null;
   ai_status?: string;
   ai_feedback?: string;
+  is_license_valid?: boolean;
+  license_validation_message?: string;
 };
 
 type Credit = {
@@ -353,10 +355,19 @@ export default function CarDetailPage() {
                 <tbody className="divide-y divide-neutral-800">
                   {car.documents.map((doc) => {
                     const aiStatus = doc.ai_status ?? "pending";
-                    const aiBadgeClass =
-                      aiStatusClasses[aiStatus] || aiStatusClasses.pending;
-                    const aiLabel =
-                      aiStatusLabels[aiStatus] || aiStatus;
+                    const isValidLicense = Boolean(doc.is_license_valid);
+                    const aiBadgeClass = isValidLicense
+                      ? aiStatusClasses.completed
+                      : aiStatusClasses[aiStatus] || aiStatusClasses.pending;
+                    const aiLabel = isValidLicense
+                      ? t("carDetail.documents.badges.valid")
+                      : aiStatusLabels[aiStatus] || aiStatus;
+                    const validationMessage =
+                      doc.license_validation_message ||
+                      doc.ai_feedback ||
+                      (isValidLicense
+                        ? t("carDetail.documents.validationMessages.valid")
+                        : "");
                     const fileUrl = doc.document_file
                       ? `${apiBaseUrl}${doc.document_file}`
                       : null;
@@ -393,9 +404,9 @@ export default function CarDetailPage() {
                             >
                               {aiLabel}
                             </span>
-                            {doc.ai_feedback && (
+                            {validationMessage && (
                               <p className="text-xs text-neutral-400">
-                                {doc.ai_feedback}
+                                {validationMessage}
                               </p>
                             )}
                           </div>

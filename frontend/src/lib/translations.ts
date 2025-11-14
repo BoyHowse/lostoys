@@ -290,6 +290,12 @@ const translations: Record<Locale, TranslationDictionary> = {
         actions: {
           viewFile: "View file",
         },
+        badges: {
+          valid: "Valid",
+        },
+        validationMessages: {
+          valid: "Document verified successfully.",
+        },
       },
       credits: {
         emptyTitle: "No credits",
@@ -623,6 +629,12 @@ const translations: Record<Locale, TranslationDictionary> = {
         warningCountLabel: "documentos",
         actions: {
           viewFile: "Ver archivo",
+        },
+        badges: {
+          valid: "Válido",
+        },
+        validationMessages: {
+          valid: "Documento verificado correctamente.",
         },
       },
       credits: {

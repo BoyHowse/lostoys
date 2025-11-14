@@ -7,7 +7,8 @@ import logging
 import mimetypes
 import threading
 from dataclasses import dataclass
-from typing import Any
+from datetime import datetime
+from typing import Any, Iterable
 
 from django.conf import settings
 from django.db import close_old_connections
@@ -64,20 +65,32 @@ class DocumentAIService:
         raw_text = (payload.get("raw_text") or "").lower()
         readable = bool(payload.get("readable"))
 
+        is_license = "licencia" in doc_type_text or "licencia" in raw_text
+        fields = payload.get("fields") or {}
+        document.license_metadata = fields
+
         if not readable:
             document.ai_status = Document.AIStatus.WARNING
+            document.is_license_valid = False
             if not document.ai_feedback:
                 document.ai_feedback = "El archivo no es legible."
-        elif "licencia" not in doc_type_text and "licencia" not in raw_text:
+            document.license_validation_message = document.ai_feedback
+        elif not is_license:
             document.ai_status = Document.AIStatus.WARNING
+            document.is_license_valid = False
             if not document.ai_feedback:
                 document.ai_feedback = (
                     "No encontramos 'Licencia de Tránsito' en el documento."
                 )
+            document.license_validation_message = document.ai_feedback
         else:
             document.ai_status = Document.AIStatus.COMPLETED
+            document.is_license_valid = True
+            message = "Documento válido"
+            document.license_validation_message = message
             if not document.ai_feedback:
-                document.ai_feedback = "Documento verificado y legible."
+                document.ai_feedback = message
+            self._apply_license_fields(document, fields)
 
         document.save(
             update_fields=[
@@ -85,7 +98,15 @@ class DocumentAIService:
                 "ai_feedback",
                 "ai_payload",
                 "ai_checked_at",
-            ]
+                "license_metadata",
+                "is_license_valid",
+                "license_validation_message",
+                "issue_date",
+                "expiry_date",
+                "provider",
+                "notes",
+                "amount",
+            ],
         )
 
     def _call_openai(self, document: Document, api_key: str) -> dict[str, Any]:
@@ -166,6 +187,37 @@ class DocumentAIService:
         document.ai_feedback = message
         document.ai_checked_at = timezone.now()
         document.save(update_fields=["ai_status", "ai_feedback", "ai_checked_at"])
+
+    def _apply_license_fields(self, document: Document, fields: dict[str, Any]) -> None:
+        """Map structured fields to the Document record."""
+        if not fields:
+            return
+        document.provider = fields.get("expedidor", document.provider)
+        document.notes = "\n".join(
+            f"{key.title()}: {value}"
+            for key, value in fields.items()
+            if isinstance(value, str) and value and key not in {"issue_date", "expiry_date"}
+        )
+        issue = self._parse_date(fields.get("issue_date"))
+        expiry = self._parse_date(fields.get("expiry_date"))
+        if issue:
+            document.issue_date = issue
+        if expiry:
+            document.expiry_date = expiry
+
+    @staticmethod
+    def _parse_date(value: Any) -> datetime.date | None:
+        if not value:
+            return None
+        if isinstance(value, datetime):
+            return value.date()
+        if isinstance(value, str):
+            for fmt in ("%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"):
+                try:
+                    return datetime.strptime(value.strip(), fmt).date()
+                except ValueError:
+                    continue
+        return None
 
 
 def enqueue_license_analysis(document_id: int) -> None:

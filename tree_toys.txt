@@ -86,10 +86,12 @@
 |   |   |-- migrations
 |   |   |   |-- 0001_initial.py
 |   |   |   |-- 0002_document_ai_checked_at_document_ai_feedback_and_more.py
+|   |   |   |-- 0003_document_is_license_valid_document_license_metadata_and_more.py
 |   |   |   |-- __init__.py
 |   |   |   `-- __pycache__
 |   |   |       |-- 0001_initial.cpython-314.pyc
 |   |   |       |-- 0002_document_ai_checked_at_document_ai_feedback_and_more.cpython-314.pyc
+|   |   |       |-- 0003_document_is_license_valid_document_license_metadata_and_more.cpython-314.pyc
 |   |   |       `-- __init__.cpython-314.pyc
 |   |   |-- models.py
 |   |   |-- serializers.py
@@ -115,7 +117,8 @@
 |   |-- media
 |   |   `-- cars
 |   |       `-- documents
-|   |           `-- licencia_transito.pdf
+|   |           |-- licencia_transito.pdf
+|   |           `-- licencia_transito_rlzc7pK.pdf
 |   `-- requirements.txt
 |-- frontend
 |   |-- README.md
@@ -189,4 +192,4 @@
 |   `-- savegametoys.sh
 `-- tree_toys.txt
 
-51 directories, 139 files
+51 directories, 142 files

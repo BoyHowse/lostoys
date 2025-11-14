@@ -95,6 +95,9 @@ class Document(TimeStampedModel):
     ai_feedback = models.TextField(blank=True)
     ai_payload = models.JSONField(blank=True, null=True)
     ai_checked_at = models.DateTimeField(blank=True, null=True)
+    license_metadata = models.JSONField(blank=True, null=True)
+    is_license_valid = models.BooleanField(default=False)
+    license_validation_message = models.CharField(max_length=255, blank=True)
 
     class Meta:
         ordering = ["expiry_date"]
