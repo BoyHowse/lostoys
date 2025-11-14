@@ -77,3 +77,16 @@
   - Abrir un enlace de verificación (`/verify/<token>/`) y confirmar que ya no aparece el warning/console error.
 - Pendientes futuros
   - Evaluar un refactor para extraer lógica común de verificación/reestreno de correos.
+
+## [$(date '+%Y-%m-%d %H:%M')] — Login sin CSRF para clientes externos
+- Cambios:
+  - backend/accounts/views.py marcado como csrf_exempt en SessionLoginView
+  - savegametoys.md actualizado con la nota correspondiente
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - Al no incluir token CSRF, los POST provenientes de Postman o apps nativas retornaban 403; se aplicó `@csrf_exempt` sobre la vista de login manteniendo el resto de endpoints protegidos.
+  - Se documentó el cambio en el SaveGame para futuras referencias.
+- Pruebas necesarias
+  - Realizar `POST /api/accounts/login/` sin CSRF (desde Postman) con credenciales válidas y verificar respuesta 200 + cookie de sesión.
+- Pendientes futuros
+  - Evaluar JWT o autenticación alternativa para clientes móviles.

@@ -6,6 +6,8 @@ from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.core.mail import EmailMultiAlternatives, send_mail
 from django.utils import timezone
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -51,6 +53,7 @@ def _pending_user_from_session(request) -> User | None:
     return User.objects.filter(pk=user_id).first()
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class SessionLoginView(APIView):
     permission_classes = (AllowAny,)
 
