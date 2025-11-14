@@ -8,12 +8,14 @@
 |   |   |   |-- __init__.cpython-314.pyc
 |   |   |   |-- admin.cpython-314.pyc
 |   |   |   |-- apps.cpython-314.pyc
+|   |   |   |-- authentication.cpython-314.pyc
 |   |   |   |-- models.cpython-314.pyc
 |   |   |   |-- serializers.cpython-314.pyc
 |   |   |   |-- urls.cpython-314.pyc
 |   |   |   `-- views.cpython-314.pyc
 |   |   |-- admin.py
 |   |   |-- apps.py
+|   |   |-- authentication.py
 |   |   |-- management
 |   |   |   |-- __init__.py
 |   |   |   |-- __pycache__
@@ -181,4 +183,4 @@
 |   `-- savegametoys.sh
 `-- tree_toys.txt
 
-48 directories, 134 files
+48 directories, 136 files

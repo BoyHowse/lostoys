@@ -90,3 +90,16 @@
   - Realizar `POST /api/accounts/login/` sin CSRF (desde Postman) con credenciales válidas y verificar respuesta 200 + cookie de sesión.
 - Pendientes futuros
   - Evaluar JWT o autenticación alternativa para clientes móviles.
+
+## [$(date '+%Y-%m-%d %H:%M')] — CsrfExemptSessionAuthentication para login
+- Cambios:
+  - backend/accounts/authentication.py creado con variante CsrfExemptSessionAuthentication
+  - backend/accounts/views.py usando la nueva clase y manteniendo @csrf_exempt
+  - savegametoys.md actualizado
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - Django seguía aplicando verificación CSRF a pesar del decorador porque el `SessionAuthentication` por defecto la fuerza; se creó una variante que omite `enforce_csrf` y se asignó al login para permitir pruebas desde Postman/apps móviles.
+- Pruebas necesarias
+  - POST /api/accounts/login/ desde Postman sin token CSRF debe responder 200 con credenciales válidas.
+- Pendientes futuros
+  - Evaluar mover login a JWT para evitar sesiones cuando el cliente sea 100% mobile.

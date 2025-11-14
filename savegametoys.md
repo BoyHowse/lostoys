@@ -41,3 +41,4 @@ Este documento se regenera cada vez que corremos el flujo SaveGameToys para deja
 - Sensibles: `.env`, `backend/venv`, `backend/db.sqlite3` ignorados mediante `.gitignore`.
 - La vista `/verify/[token]` (Next.js) ahora usa `useParams` para alinearse con el nuevo contrato de `params` basado en Promises, evitando warnings/errores a futuro.
 - El endpoint `/api/accounts/login/` se declaró `csrf_exempt` para permitir autenticaciones desde clientes externos (Postman, apps móviles) sin requerir token CSRF, manteniendo la sesión basada en cookies.
+- Se añadió una autenticación `CsrfExemptSessionAuthentication` específica para el login, lo que evita 403 por CSRF pero mantiene el resto de endpoints con las protecciones por defecto.

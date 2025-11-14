@@ -14,6 +14,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .authentication import CsrfExemptSessionAuthentication
 from .models import User
 from .serializers import RegisterSerializer, UserSerializer
 from .utils.email_templates import verification_email_html
@@ -56,6 +57,7 @@ def _pending_user_from_session(request) -> User | None:
 @method_decorator(csrf_exempt, name="dispatch")
 class SessionLoginView(APIView):
     permission_classes = (AllowAny,)
+    authentication_classes = (CsrfExemptSessionAuthentication,)
 
     def post(self, request):
         username = request.data.get("username")
