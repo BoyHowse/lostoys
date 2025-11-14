@@ -7,6 +7,10 @@ class DocumentSerializer(serializers.ModelSerializer):
     status_indicator = serializers.CharField(read_only=True)
     type_display = serializers.CharField(source="get_type_display", read_only=True)
     document_file = serializers.FileField(required=False, allow_null=True)
+    is_expired = serializers.SerializerMethodField()
+
+    def get_is_expired(self, obj):
+        return obj.is_expired
 
     class Meta:
         model = Document
@@ -29,6 +33,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             "is_license_valid",
             "license_validation_message",
             "status_indicator",
+            "is_expired",
             "external_status",
             "external_source",
             "external_payload",
@@ -46,6 +51,7 @@ class DocumentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
             "status_indicator",
+            "is_expired",
             "license_metadata",
             "is_license_valid",
             "license_validation_message",

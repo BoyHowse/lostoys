@@ -28,6 +28,7 @@ type Document = {
   external_status?: string | null;
   external_source?: string | null;
   external_fetched_at?: string | null;
+  is_expired?: boolean;
 };
 
 type Credit = {
@@ -516,6 +517,11 @@ export default function CarDetailPage() {
                             {statusIndicatorLabels[doc.status_indicator] ||
                               doc.status_indicator}
                           </span>
+                          {doc.is_expired && (
+                            <p className="mt-1 text-xs font-bold uppercase text-rose-400">
+                              {t("carDetail.documents.expiredBadge")}
+                            </p>
+                          )}
                         </td>
                         <td className="px-4 py-3">
                           <div className="space-y-1">

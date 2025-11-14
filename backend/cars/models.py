@@ -127,6 +127,10 @@ class Document(TimeStampedModel):
             return "yellow"
         return "green"
 
+    @property
+    def is_expired(self) -> bool:
+        return bool(self.expiry_date and self.expiry_date < timezone.now().date())
+
 
 class Credit(TimeStampedModel):
     car = models.ForeignKey(

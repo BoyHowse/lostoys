@@ -21,6 +21,7 @@ from openai import OpenAI
 import pypdfium2 as pdfium
 
 from .models import Document
+from .ocr import extract_dates
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +67,8 @@ class DocumentAIService:
         document.ai_feedback = payload.get("reason", "")
 
         doc_type_text = (payload.get("document_type") or "").lower()
-        raw_text = (payload.get("raw_text") or "").lower()
+        raw_text_full = payload.get("raw_text") or ""
+        raw_text = raw_text_full.lower()
         readable = bool(payload.get("readable"))
 
         is_license = "licencia" in doc_type_text or "licencia" in raw_text
@@ -95,6 +97,11 @@ class DocumentAIService:
             if not document.ai_feedback:
                 document.ai_feedback = message
             self._apply_license_fields(document, fields)
+            issued_date, expiry_date = extract_dates(raw_text_full)
+            if issued_date:
+                document.issue_date = issued_date
+            if expiry_date:
+                document.expiry_date = expiry_date
 
         document.save(
             update_fields=[

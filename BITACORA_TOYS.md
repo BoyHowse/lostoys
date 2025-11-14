@@ -219,3 +219,16 @@ Archivos modificados:
   - Desde el frontend, abrir la pestaña SOAT y pulsar “Actualizar consulta” para confirmar que el estado cambia y se muestra el detalle.
 - Pendientes futuros
   - Integrar un proveedor oficial (RUNT/Fasecolda) y agregar manejo de errores específicos o reintentos programados.
+## [2025-11-14 17:56] — OCR de licencias con fechas reales
+- Cambios:
+  - backend/cars/ocr.py nuevo módulo que normaliza fechas (dd/mm/yyyy, guiones, etc.).
+  - backend/cars/services.py usa el OCR sobre `raw_text` de OpenAI para poblar `issue_date`/`expiry_date` sin fallbacks.
+  - backend/cars/models.py añade la propiedad `is_expired`; serializers/frontend exponen el flag.
+  - frontend/src/app/cars/[id]/page.tsx muestra la alerta “DOCUMENTO EXPIRADO”.
+- Descripción técnica
+  - El LLM devolvía cadenas incompletas y se terminaba guardando `timezone.now()` downstream. Ahora extraemos fechas directamente del texto OCR y sólo guardamos cuando realmente existen, dejando `null` en caso contrario. La UI marca los documentos vencidos en rojo.
+- Pruebas necesarias
+  - Subir una licencia con fecha vencida y confirmar que `/api/cars/:id/` devuelve `is_expired=true` en el documento.
+  - Verificar en el dashboard que aparece la alerta roja en la fila correspondiente.
+- Pendientes futuros
+  - Añadir más patrones para variaciones de “Fecha de expedición” y soportar múltiples instancias (p. ej. contraseñas).

@@ -294,6 +294,7 @@ const translations: Record<Locale, TranslationDictionary> = {
         badges: {
           valid: "Valid",
         },
+        expiredBadge: "DOCUMENT EXPIRED",
         validationMessages: {
           valid: "Document verified successfully.",
         },
@@ -663,6 +664,7 @@ const translations: Record<Locale, TranslationDictionary> = {
         badges: {
           valid: "Válido",
         },
+        expiredBadge: "DOCUMENTO EXPIRADO",
         validationMessages: {
           valid: "Documento verificado correctamente.",
         },

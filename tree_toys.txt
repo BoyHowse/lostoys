@@ -49,6 +49,7 @@
 |   |   |   |-- 0004_document_external_fetched_at_and_more.py
 |   |   |   `-- __init__.py
 |   |   |-- models.py
+|   |   |-- ocr.py
 |   |   |-- serializers.py
 |   |   |-- services.py
 |   |   |-- tests.py
@@ -144,4 +145,4 @@
 |   `-- savegametoys.sh
 `-- tree_toys.txt
 
-42 directories, 103 files
+42 directories, 104 files
