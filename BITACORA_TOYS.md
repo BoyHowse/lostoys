@@ -31,24 +31,36 @@
   - Ejecutar `./savegametoys "mensaje"` y verificar que regenere savegame, bitácora y realice push sin errores.
 - Pendientes futuros
   - Reemplazar el placeholder de la plantilla con generación dinámica del contenido real.
-## [2025-11-14 00:19] — SaveGame Update
-Archivos modificados:
-- BITACORA_TOYS.md
 
-## [2025-11-14 00:25] — SaveGame Update
-Archivos modificados:
-- BITACORA_TOYS.md
-
-
-## [$(date '+%Y-%m-%d %H:%M')] — Reinstalación de entorno backend y documentación SaveGame
+## [2025-11-14 00:19] — SaveGame Update automático
 - Cambios:
-  - backend/venv recreado y dependencias instaladas desde requirements.txt
+  - BITACORA_TOYS.md modificado por el flujo automático
+- Descripción técnica
+  - Registro automático generado por el script anterior (sin cambios adicionales en código).
+- Pruebas necesarias
+  - Ninguna (entrada informativa).
+- Pendientes futuros
+  - Sustituir estos registros automáticos por documentación detallada.
+
+## [2025-11-14 00:25] — SaveGame Update automático
+- Cambios:
+  - BITACORA_TOYS.md modificado por el flujo automático
+- Descripción técnica
+  - Registro automático generado por el script anterior (sin cambios adicionales en código).
+- Pruebas necesarias
+  - Ninguna.
+- Pendientes futuros
+  - Consolidar entradas automáticas en descripciones más completas.
+
+## [2025-11-14 00:34] — Reinstalación de entorno backend y documentación SaveGame
+- Cambios:
+  - backend/venv recreado e instalado con `pip install -r requirements.txt`
   - savegametoys.md reescrito con el estado actual
   - tree_toys.txt regenerado tras la reinstalación
 - Descripción técnica
   - Se recreó el entorno virtual (`python3 -m venv backend/venv`) y se reinstalaron dependencias para restaurar los templates internos de Django que provocaban el error `technical_500.html`.
   - Se documentó el procedimiento dentro de savegametoys.md para futuras referencias.
 - Pruebas necesarias
-  - Levantar el servidor (manage.py runserver) y verificar que /api/accounts/me/ responde sin error 500.
+  - Levantar el servidor (manage.py runserver) y verificar que `/api/accounts/me/` responde sin error 500.
 - Pendientes futuros
   - Automatizar validaciones del entorno antes de arrancar el backend.
