@@ -232,3 +232,12 @@ Archivos modificados:
   - Verificar en el dashboard que aparece la alerta roja en la fila correspondiente.
 - Pendientes futuros
   - Añadir más patrones para variaciones de “Fecha de expedición” y soportar múltiples instancias (p. ej. contraseñas).
+## [2025-11-14 18:38] — Formato correcto de fechas en documentos
+- Cambios:
+  - frontend/src/app/cars/[id]/page.tsx usa `toLocaleDateString("es-CO")` para emisión y vencimiento, evitando que aparezcan en formato mm/dd.
+- Descripción técnica
+  - Se añadió un helper `formatDocumentDate` para mostrar siempre dd/mm/aaaa; antes el navegador usaba la configuración en-US y confundía a los usuarios.
+- Pruebas necesarias
+  - Abrir un vehículo con licencia cargada y verificar que las columnas muestran fechas legibles (ej. 13/11/2025).
+- Pendientes futuros
+  - Mostrar la zona horaria del usuario si personalizamos más adelante.

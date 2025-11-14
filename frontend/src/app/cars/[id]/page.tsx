@@ -200,7 +200,26 @@ export default function CarDetailPage() {
     if (Number.isNaN(parsed.getTime())) {
       return value;
     }
-    return parsed.toLocaleDateString();
+    return parsed.toLocaleDateString("es-CO", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
+  const formatDocumentDate = (value?: string | null) => {
+    if (!value) {
+      return "—";
+    }
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) {
+      return value;
+    }
+    return parsed.toLocaleDateString("es-CO", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const soatDocument = soatSnapshot?.document || null;
@@ -499,10 +518,10 @@ export default function CarDetailPage() {
                         </td>
                         <td className="px-4 py-3">{doc.provider || "—"}</td>
                         <td className="px-4 py-3">
-                          {new Date(doc.issue_date).toLocaleDateString()}
+                          {formatDocumentDate(doc.issue_date)}
                         </td>
                         <td className="px-4 py-3">
-                          {new Date(doc.expiry_date).toLocaleDateString()}
+                          {formatDocumentDate(doc.expiry_date)}
                         </td>
                         <td className="px-4 py-3">
                           $
