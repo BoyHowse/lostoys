@@ -39,3 +39,16 @@ Archivos modificados:
 Archivos modificados:
 - BITACORA_TOYS.md
 
+
+## [$(date '+%Y-%m-%d %H:%M')] — Reinstalación de entorno backend y documentación SaveGame
+- Cambios:
+  - backend/venv recreado y dependencias instaladas desde requirements.txt
+  - savegametoys.md reescrito con el estado actual
+  - tree_toys.txt regenerado tras la reinstalación
+- Descripción técnica
+  - Se recreó el entorno virtual (`python3 -m venv backend/venv`) y se reinstalaron dependencias para restaurar los templates internos de Django que provocaban el error `technical_500.html`.
+  - Se documentó el procedimiento dentro de savegametoys.md para futuras referencias.
+- Pruebas necesarias
+  - Levantar el servidor (manage.py runserver) y verificar que /api/accounts/me/ responde sin error 500.
+- Pendientes futuros
+  - Automatizar validaciones del entorno antes de arrancar el backend.
