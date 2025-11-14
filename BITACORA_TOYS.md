@@ -157,3 +157,15 @@
   - Subir una licencia de tránsito legible y verificar que el documento pase a “VÁLIDO” y las fechas se autocompleten.
 - Pendientes futuros
   - Mostrar el detalle de `license_metadata` en un modal o ficha dedicada.
+## [2025-11-14 16:35] — IA Licencia estable + SaveGame docs
+- Cambios:
+  - backend/cars/services.py sanea las respuestas Responses y vuelve a procesar licencias
+  - scripts/generate_savegametoys.ts ahora genera un estado completo y con timestamp dinámico
+  - savegametoys.md se regeneró con la fotografía actual del proyecto
+- Descripción técnica
+  - Se actualizó el cliente OpenAI (pip install) y el servicio `DocumentAIService` ahora limpia fences markdown antes de parsear JSON, evitando el error `'OpenAI' object has no attribute 'responses'` y los `JSONDecodeError`. También se documentaron arquitectura, flujos y roadmap en el nuevo generador TS.
+- Pruebas necesarias
+  - Reprocesar un documento (`DocumentAIService(document_id).run()`) y verificar que el registro pasa a `ai_status=completed` y `license_validation_message="Documento válido"`.
+  - Abrir un archivo desde `/cars/:id` y confirmar que `/media/...` lo despliega en el navegador.
+- Pendientes futuros
+  - Persistir más campos de la licencia (ej. fechas faltantes) y mostrar el visor embebido en el frontend.

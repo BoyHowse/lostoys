@@ -1,48 +1,60 @@
-# LosToys — Estado Actual (SaveGame)
+# SAVEGAME TOYS
 
-Este documento se regenera cada vez que corremos el flujo SaveGameToys para dejar trazado el estado real del proyecto.
+_Actualizado: 2025-11-14T21:35:02.609Z_
 
-## 1. Arquitectura
-- **Backend**: Django 5 + DRF, apps `accounts`, `cars`, `alerts`. Configuración en `backend/config/settings.py`. Entorno gestionado vía `.env` (no versionado) y `python-dotenv`.
-- **Frontend**: Next.js 15 / React 19 con TailwindCSS. Rutas bajo `frontend/src/app`, componentes en `frontend/src/components`, contextos en `frontend/src/context`.
-- **Infraestructura prevista**: Gunicorn + Nginx. Actualmente SQLite local. Email SMTP (Gmail). OpenAI para OCR/LLM y Twilio para SMS/WhatsApp (placeholders en `.env`).
+## 1. Arquitectura General
+- **Backend:** Django 5 + Django REST Framework. Autenticación por sesión, CSRF deshabilitado únicamente en `SessionLoginView`. Corre sobre PostgreSQL y lee configuración desde `backend/.env`.
+- **Frontend:** Next.js 15 (React 19) en modo App Router. UI en español enfocada en panel oscuro con Tailwind 4 y componentes propios.
+- **Servicios auxiliares:** Gmail SMTP para notificaciones de verificación, OpenAI (Responses API) para lectura de licencias y el comando `savegametoys` para documentación/commits automáticos.
 
-## 2. Modelos clave
-- `accounts.User`: extiende `AbstractUser`, agrega `role`, `phone_number`, flags de alertas, `country`, `verification_token`, `verification_sent_at` e `is_verified`.
-- `cars.Car`: datos base del vehículo y `health_status` derivado de documentos.
-- `cars.Document`: tipos (SOAT, Tecnomecánica, Insurance, Registration, Licencia de tránsito). Campos AI: `ai_status`, `ai_feedback`, `ai_payload`, `ai_checked_at`, admite `document_file` imagen o PDF.
-- `cars.Credit` / `cars.Maintenance`: información financiera y bitácora de talleres.
+## 2. Modelos Principales
+- **accounts.User:** hereda de `AbstractUser`; campos extra (role, phone_number, country, verification_token, verification_sent_at, flags de alertas).
+- **cars.Car:** vehículo por usuario; calcula `health_status` según documentos.
+- **cars.Document:** tipos SOAT/Tecnomecánica/Seguro/Registro/Licencia de tránsito. Guarda metadatos del análisis (ai_status, license_metadata, is_license_valid, mensajes).
+- **cars.Credit**, **cars.Maintenance** y alertas relacionadas para historial financiero/mantenimiento.
 
-## 3. Flujos principales
-1. **Registro / Verificación**: `RegisterView` genera token y envía correo mediante `_send_verification_email` usando `FRONTEND_URL`. Login bloquea usuarios sin verificar. `verify_account` valida token de 24h y actualiza flags. `resend_verification_email` permite reenviar.
-2. **Documentos + AI**: `DocumentViewSet` acepta multipart; si el usuario es de Colombia y tipo `transit_license`, se encola `enqueue_license_analysis`. `DocumentAIService` convierte PDF (pypdfium2) a PNG, llama OpenAI `gpt-4o-mini` y marca estados `COMPLETED/WARNING/FAILED`.
-3. **Frontend**: dashboards (resumen), detalle de vehículos (tabs), formulario minimalista para licencias (campos avanzados ocultos hasta subir archivo), pantalla `/verify/[token]` con estados + reenvío.
+## 3. Flujos Clave
+- **Registro:** `RegisterView` crea usuario, marca `is_verified=False`, genera token, envía email HTML bilingüe y guarda ID en sesión para reenviar.
+- **Verificación:** frontend en `/verify/[token]` consulta `/api/accounts/verify/<token>/`, maneja estados success/invalid/expired y permite reenviar. Tokens expiran a las 24 h y se regeneran después de usarse.
+- **Login:** bloqueado cuando `is_verified=False`. Usa `CsrfExemptSessionAuthentication` para permitir peticiones desde Next sin token manual.
+- **Documentos + IA:** al subir “Licencia de tránsito” para usuarios de CO se lanza `DocumentAIService` en thread. Convierte PDF → PNG con pypdfium2, llama a OpenAI Responses, valida JSON (limpiando los fences markdown que envía el modelo) y rellena metadatos/notas/mensajes.
 
-## 4. Endpoints destacados
-- `/api/accounts/`*: login, logout, register, me, verify, resend, email/test.
-- `/api/cars/`, `/api/documents/`, `/api/credits/`, `/api/maintenances/`, `/api/notifications/`.
+## 4. Endpoints Destacados
+- **Accounts:** `/api/accounts/register`, `/login`, `/logout`, `/me`, `/verify/<uuid>`, `/email/verify/send`, `/email/verify/resend`, `/email/test`.
+- **Cars:** viewsets en `/api/cars/`, `/api/documents/`, `/api/credits/`, `/api/maintenance/`.
+- **Helpers:** `/api/csrf/` para inicializar cookies de sesión desde el frontend.
 
 ## 5. Dependencias
-- Backend: Django 5, DRF 3.15, celery 5.3, twilio 9, openai 1.40.2, pypdfium2 4.30, Pillow 10.4.
-- Frontend: Next.js 15, TailwindCSS, TypeScript, tsx (para scripts).
+- Backend: Django 5, DRF 3.15, django-cors-headers, psycopg 3, Celery (pendiente de uso), Twilio, Pillow, OpenAI 2.8, httpx, pypdfium2.
+- Frontend: Next 15.5, React 19.1, Tailwind 4, ESLint 9, TypeScript 5.
 
-## 6. Estado de entorno / Base de datos
-- 2025-11-14: se recreó `backend/venv` y se reinstalaron dependencias (`pip install -r requirements.txt`) luego de que el entorno anterior fuera eliminado; esto corrige el error `technical_500.html` al servir páginas de error.
-- 2025-11-14: el backend ahora apunta a **PostgreSQL** (`lostoys_dev` en `localhost:5432`) usando `lostoys_user / LosToysDev1$`. Para volver a SQLite basta con poner `USE_SQLITE=true` en `.env`.
+## 6. Estructura Relevante
+- `backend/config/settings.py`: configuración general, correo SMTP, logging INFO, MEDIA_URL servido en debug.
+- `backend/accounts`: autenticación/verificación.
+- `backend/cars`: modelos, serializers y servicio de IA (`services.py`).
+- `frontend/src/app`: vistas de dashboard, documentos y flujo de verificación.
+- `scripts/`: `savegametoys` (bash) + generador TS de este archivo.
 
-## 7. TODO / Roadmap
-- Migrar pipeline AI a Celery/Redis en lugar de threads.
-- Almacenar archivos en S3 u otro storage remoto.
-- UI para créditos/mantenimientos (actualmente placeholders).
-- Alertas UI cuando un documento queda en WARNING.
-- Suite de pruebas automáticas (Pytest/Playwright).
+## 7. TODOs Pendientes
+- Migrar el análisis de documentos a Celery o background worker robusto.
+- Guardar automáticamente fechas de vigencia cuando OpenAI las devuelva vacías (ej. inferencia OCR adicional).
+- Añadir interfaz para ver/descargar archivos dentro de un visor embebido.
+- Completar soporte de IA para otros tipos documentales (SOAT, tecnomecánica).
 
-## 8. Notas
-- `savegametoys` script regenera este archivo, la bitácora y el árbol, además de hacer commit/push.
-- Sensibles: `.env`, `backend/venv`, `backend/db.sqlite3` ignorados mediante `.gitignore`.
-- La vista `/verify/[token]` (Next.js) ahora usa `useParams` para alinearse con el nuevo contrato de `params` basado en Promises, evitando warnings/errores a futuro.
-- El endpoint `/api/accounts/login/` se declaró `csrf_exempt` para permitir autenticaciones desde clientes externos (Postman, apps móviles) sin requerir token CSRF, manteniendo la sesión basada en cookies.
-- Se añadió una autenticación `CsrfExemptSessionAuthentication` específica para el login, lo que evita 403 por CSRF pero mantiene el resto de endpoints con las protecciones por defecto.
-- El comando `seed_initial_data` ahora marca automáticamente a `boy` y `demo` como `is_verified=True` para que las credenciales del README funcionen sin pasar por el flujo de correo.
-- `Car.health_status` corregido para invocar `doc.days_until_expiry()` (antes era el método sin ejecutar), evitando el crash “TypeError '<' not supported…” al consultar `/api/cars/:id/`.
-- Cuando el análisis AI confirma una “Licencia de Tránsito” válida, se rellena `license_metadata`, se sobreescriben las fechas del documento, se marca `is_license_valid` y el frontend muestra el chip “VÁLIDO”; en caso contrario se muestra el motivo del error. También se expone el enlace al archivo con `<a>` para abrirlo correctamente en otra pestaña.
+## 8. Decisiones Técnicas
+- Priorizar autenticación por sesiones para compartir cookies entre backend y Next (requiere `credentials: include` en fetcher).
+- Usar PostgreSQL como fuente única (se descartó SQLite/demo). Datos críticos no se borran al reiniciar.
+- AI pipeline corre en thread local para evitar bloquear petición, pero mantiene `transaction.on_commit` para consistencia.
+- Documentación y commits controlados con `./savegametoys` para mantener bitácora + tree sincronizados.
+
+## 9. Roadmap Corto
+1. Exponer visor de archivos y mejorar feedback visual (badge “Documento válido” ya implementado).
+2. Dashboard de salud de flota con alertas agregadas.
+3. Integración con otros proveedores (SMS/WhatsApp) reutilizando flags de usuario.
+4. despliegue staging con dominios reales para enlaces de verificación.
+
+## 10. Notas Importantes
+- Las credenciales sensibles (DB, OpenAI, SMTP) viven únicamente en `backend/.env`; nunca se imprimen en logs ni en estos documentos.
+- Para probar flujos de email usar `python manage.py runserver` + `/api/accounts/email/test/`.
+- Documentos se sirven desde `/media/`; frontend construye URLs con `NEXT_PUBLIC_API_URL`.
+- Después de cada cambio correr `./savegametoys` para regenerar este archivo, bitácora, snapshot `tree_toys.txt` y push automático.

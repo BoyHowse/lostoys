@@ -12,6 +12,7 @@ backend/venv/
 
 # Databases
 backend/db.sqlite3
+backend/media/
 
 # Node/Next
 frontend/node_modules/
@@ -24,4 +25,3 @@ frontend/.next/
 
 # Generated logs
 logs/tree-latest.txt
-

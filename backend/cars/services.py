@@ -155,7 +155,7 @@ class DocumentAIService:
                     text_chunks.append(content.text)
         raw_response = "".join(text_chunks).strip()
         try:
-            return json.loads(raw_response)
+            return self._parse_json_payload(raw_response)
         except json.JSONDecodeError as exc:
             logger.error("Respuesta de IA no es JSON: %s", raw_response)
             raise ValueError("La IA devolvió un formato inesperado.") from exc
@@ -218,6 +218,23 @@ class DocumentAIService:
                 except ValueError:
                     continue
         return None
+
+    @staticmethod
+    def _parse_json_payload(raw_response: str) -> dict[str, Any]:
+        """Accept OpenAI responses with optional markdown fences."""
+        cleaned = raw_response.strip()
+        if cleaned.startswith("```"):
+            cleaned = cleaned.strip("`")
+            if cleaned.lower().startswith("json"):
+                cleaned = cleaned[4:].lstrip()
+            if "```" in cleaned:
+                cleaned = cleaned.split("```", 1)[0].strip()
+        if not cleaned.startswith("{"):
+            start = cleaned.find("{")
+            end = cleaned.rfind("}")
+            if start != -1 and end != -1 and start < end:
+                cleaned = cleaned[start : end + 1]
+        return json.loads(cleaned)
 
 
 def enqueue_license_analysis(document_id: int) -> None:
