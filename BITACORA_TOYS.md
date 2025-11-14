@@ -200,3 +200,8 @@
   - Abrir un vehículo con documentos y hacer clic en "Ver archivo"; el enlace debe apuntar a una URL válida que carga el PDF/imagen real.
 - Pendientes futuros
   - Añadir fallback para mostrar mensaje si el archivo no existe (404) y un visor integrado dentro de la app.
+## [2025-11-14 17:07] — SaveGame Update
+Archivos modificados:
+- BITACORA_TOYS.md
+- savegametoys.md
+
