@@ -169,3 +169,13 @@
   - Abrir un archivo desde `/cars/:id` y confirmar que `/media/...` lo despliega en el navegador.
 - Pendientes futuros
   - Persistir más campos de la licencia (ej. fechas faltantes) y mostrar el visor embebido en el frontend.
+## [2025-11-14 16:39] — Tree filtrado y snapshot limpio
+- Cambios:
+  - savegametoys.md se regeneró (nuevo timestamp)
+  - tree_toys.txt se volvió a generar ignorando venv/__pycache__ para reducir ruido
+- Descripción técnica
+  - Se eliminaron artefactos `__pycache__` y se actualizó el comando de snapshot para excluir entornos locales. El SaveGame queda legible y liviano.
+- Pruebas necesarias
+  - Ejecutar `tree -I "node_modules|.venv|venv|env|static|__pycache__|*.pyc"` y verificar que `backend/venv` ya no aparece.
+- Pendientes futuros
+  - Automatizar la limpieza de `__pycache__` dentro del propio comando `savegametoys`.
