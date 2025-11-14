@@ -60,7 +60,7 @@ _Actualizado: ${updatedAt}_
 ## 10. Notas Importantes
 - Las credenciales sensibles (DB, OpenAI, SMTP) viven únicamente en \`backend/.env\`; nunca se imprimen en logs ni en estos documentos.
 - Para probar flujos de email usar \`python manage.py runserver\` + \`/api/accounts/email/test/\`.
-- Documentos se sirven desde \`/media/\`; frontend construye URLs con \`NEXT_PUBLIC_API_URL\`.
+- Documentos se sirven desde \`/media/\`; frontend construye URLs con \`NEXT_PUBLIC_API_URL\` y la cabecera \`X_FRAME_OPTIONS = \"SAMEORIGIN\"\` permite previsualizarlos sin bloqueos.
 - Después de cada cambio correr \`./savegametoys\` para regenerar este archivo, bitácora, snapshot \`tree_toys.txt\` y push automático.
 `;
 

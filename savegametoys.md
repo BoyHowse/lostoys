@@ -1,6 +1,6 @@
 # SAVEGAME TOYS
 
-_Actualizado: 2025-11-14T21:38:57.074Z_
+_Actualizado: 2025-11-14T21:55:07.263Z_
 
 ## 1. Arquitectura General
 - **Backend:** Django 5 + Django REST Framework. Autenticación por sesión, CSRF deshabilitado únicamente en `SessionLoginView`. Corre sobre PostgreSQL y lee configuración desde `backend/.env`.
@@ -56,5 +56,5 @@ _Actualizado: 2025-11-14T21:38:57.074Z_
 ## 10. Notas Importantes
 - Las credenciales sensibles (DB, OpenAI, SMTP) viven únicamente en `backend/.env`; nunca se imprimen en logs ni en estos documentos.
 - Para probar flujos de email usar `python manage.py runserver` + `/api/accounts/email/test/`.
-- Documentos se sirven desde `/media/`; frontend construye URLs con `NEXT_PUBLIC_API_URL`.
+- Documentos se sirven desde `/media/`; frontend construye URLs con `NEXT_PUBLIC_API_URL` y la cabecera `X_FRAME_OPTIONS = "SAMEORIGIN"` permite previsualizarlos sin bloqueos.
 - Después de cada cambio correr `./savegametoys` para regenerar este archivo, bitácora, snapshot `tree_toys.txt` y push automático.

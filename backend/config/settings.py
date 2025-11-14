@@ -223,6 +223,7 @@ EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = "LosToys <wwwlostoys@gmail.com>"
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+X_FRAME_OPTIONS = "SAMEORIGIN"
 
 LOGGING = {
     "version": 1,

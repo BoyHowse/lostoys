@@ -179,3 +179,14 @@
   - Ejecutar `tree -I "node_modules|.venv|venv|env|static|__pycache__|*.pyc"` y verificar que `backend/venv` ya no aparece.
 - Pendientes futuros
   - Automatizar la limpieza de `__pycache__` dentro del propio comando `savegametoys`.
+## [2025-11-14 16:55] — Vista previa de documentos habilitada
+- Cambios:
+  - backend/config/settings.py define `X_FRAME_OPTIONS = "SAMEORIGIN"`
+  - scripts/generate_savegametoys.ts/an savegametoys.md documentan la regla de seguridad
+  - tree_toys.txt regenerado
+- Descripción técnica
+  - Los archivos PDF/imagen servidos desde `/media/` eran bloqueados por Chrome (about:blank#blocked) porque Django enviaba `X-Frame-Options: DENY`. Se relajó a `SAMEORIGIN` para que el visor integrado del navegador pueda abrirlos en una nueva pestaña sin comprometer dominios externos.
+- Pruebas necesarias
+  - En el dashboard, hacer clic en "Ver archivo" para cualquier documento existente; debe abrirse el PDF/imagen real en una pestaña nueva.
+- Pendientes futuros
+  - Añadir visor embebido dentro de la app usando un modal (posible cuando cambiemos la cabecera a ALLOW-FROM si se sirve en dominio distinto).
