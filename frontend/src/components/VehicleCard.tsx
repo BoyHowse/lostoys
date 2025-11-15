@@ -52,7 +52,10 @@ export default function VehicleCard({ car }: { car: Car }) {
       : car.status;
 
   return (
-    <article className="relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/60 shadow-glow transition hover:border-gold/60 hover:shadow-[0_0_35px_rgba(212,175,55,0.25)]">
+    <Link
+      href={`/cars/${car.id}`}
+      className="block relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/60 shadow-glow transition hover:border-gold/60 hover:shadow-[0_0_35px_rgba(212,175,55,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+    >
       <div className="border-b border-neutral-800 bg-neutral-900/80 px-6 py-4">
         <div className="flex items-start justify-between">
           <div>
@@ -115,13 +118,10 @@ export default function VehicleCard({ car }: { car: Car }) {
         <span className="uppercase tracking-[0.3em] text-neutral-500">
           {t("vehicleCard.labels.vehicle")} {car.id}
         </span>
-        <Link
-          href={`/cars/${car.id}`}
-          className="rounded-full border border-gold px-4 py-1 text-xs font-semibold uppercase tracking-widest text-gold transition hover:bg-gold hover:text-black"
-        >
+        <span className="rounded-full border border-gold px-4 py-1 text-xs font-semibold uppercase tracking-widest text-gold">
           {t("vehicleCard.actions.details")}
-        </Link>
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }
