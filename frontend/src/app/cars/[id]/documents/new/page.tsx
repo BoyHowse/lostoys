@@ -48,8 +48,8 @@ export default function NewDocumentPage() {
   const [form, setForm] = useState({
     type: defaultType,
     provider: "",
-    issue_date: new Date().toISOString().split("T")[0],
-    expiry_date: new Date().toISOString().split("T")[0],
+    issue_date: "",
+    expiry_date: "",
     amount: "",
     notes: "",
   });

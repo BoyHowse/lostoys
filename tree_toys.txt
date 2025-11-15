@@ -52,6 +52,7 @@
 |   |   |   |-- 0002_document_ai_checked_at_document_ai_feedback_and_more.py
 |   |   |   |-- 0003_document_is_license_valid_document_license_metadata_and_more.py
 |   |   |   |-- 0004_document_external_fetched_at_and_more.py
+|   |   |   |-- 0005_alter_document_expiry_date_alter_document_issue_date.py
 |   |   |   `-- __init__.py
 |   |   |-- models.py
 |   |   |-- ocr.py
@@ -77,6 +78,7 @@
 |   |           |-- licencia_transito.pdf
 |   |           |-- licencia_transito_32XErWg.pdf
 |   |           |-- licencia_transito_FnOe8Dh.pdf
+|   |           |-- licencia_transito_XOa3OWH.pdf
 |   |           `-- licencia_transito_rlzc7pK.pdf
 |   `-- requirements.txt
 |-- frontend
@@ -151,4 +153,4 @@
 |   `-- savegametoys.sh
 `-- tree_toys.txt
 
-44 directories, 108 files
+44 directories, 110 files

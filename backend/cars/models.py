@@ -79,8 +79,8 @@ class Document(TimeStampedModel):
         Car, on_delete=models.CASCADE, related_name="documents", db_index=True
     )
     type = models.CharField(max_length=30, choices=DocumentType.choices)
-    issue_date = models.DateField()
-    expiry_date = models.DateField()
+    issue_date = models.DateField(null=True, blank=True)
+    expiry_date = models.DateField(null=True, blank=True)
     amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     provider = models.CharField(max_length=120, blank=True)
     document_file = models.FileField(

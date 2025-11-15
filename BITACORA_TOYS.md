@@ -263,3 +263,13 @@ Archivos modificados:
   - Forzar varios documentos seguidos y observar cómo el log muestra los reintentos antes de marcar WARNING.
 - Pendientes futuros
   - Registrar métricas del número de reintentos para ajustar el backoff conforme al plan de uso.
+## [2025-11-14 19:48] — Fechas opcionales hasta que la IA las lea
+- Cambios:
+  - backend/cars/models.py permite `issue_date` y `expiry_date` nulos (migración 0005) y el serializer acepta valores vacíos.
+  - frontend/src/app/cars/[id]/documents/new/page.tsx deja los campos de fecha en blanco por defecto, evitando llenar “hoy” automáticamente.
+- Descripción técnica
+  - Las licencias registradas quedaban con emisión/vencimiento igual al día de carga porque la UI mandaba `new Date()` y el modelo no aceptaba null. Ahora, si el usuario no captura nada, el documento se crea con fechas vacías y el OCR es quien las completa cuando se obtiene el resultado.
+- Pruebas necesarias
+  - Subir una licencia, verificar que en la DB (o `/api/cars/:id/`) `issue_date`/`expiry_date` quedan `null` hasta que el análisis termine.
+- Pendientes futuros
+  - Para documentos distintos a la licencia, ofrecer un “autocompletar con hoy” opcional en vez de obligar al usuario a escribir.

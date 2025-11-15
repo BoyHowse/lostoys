@@ -4,6 +4,8 @@ from .models import Car, Credit, Document, Maintenance
 
 
 class DocumentSerializer(serializers.ModelSerializer):
+    issue_date = serializers.DateField(required=False, allow_null=True)
+    expiry_date = serializers.DateField(required=False, allow_null=True)
     status_indicator = serializers.CharField(read_only=True)
     type_display = serializers.CharField(source="get_type_display", read_only=True)
     document_file = serializers.FileField(required=False, allow_null=True)
