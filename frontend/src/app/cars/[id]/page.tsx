@@ -554,7 +554,11 @@ export default function CarDetailPage() {
                         : "");
                     const fileUrl = resolveFileUrl(doc.document_file);
                     return (
-                      <tr key={doc.id} className="hover:bg-neutral-900/70">
+                      <tr
+                        key={doc.id}
+                        className="cursor-pointer hover:bg-neutral-900/70"
+                        onClick={() => setActionsDoc(doc)}
+                      >
                         <td className="px-4 py-3 text-neutral-100">
                           {(doc.type_display ?? doc.type) || doc.type}
                         </td>
@@ -598,14 +602,8 @@ export default function CarDetailPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3">
-                          <button
-                            type="button"
-                            onClick={() => setActionsDoc(doc)}
-                            className="text-xs uppercase tracking-[0.3em] text-gold underline underline-offset-4 transition hover:text-neutral-100"
-                          >
-                            {t("carDetail.documents.actions.open")}
-                          </button>
+                        <td className="px-4 py-3 text-xs uppercase tracking-[0.3em] text-neutral-500">
+                          {t("carDetail.documents.actions.tapRow")}
                         </td>
                       </tr>
                     );
