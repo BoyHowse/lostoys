@@ -36,7 +36,8 @@ export default function NewDocumentPage() {
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const isColombia = (user?.country || "co").toLowerCase() === "co";
 
@@ -52,6 +53,13 @@ export default function NewDocumentPage() {
     expiry_date: "",
     amount: "",
     notes: "",
+  });
+  const [extraDetails, setExtraDetails] = useState({
+    owner: "",
+    document_number: "",
+    vin: "",
+    service: "",
+    details: "",
   });
 
   useEffect(() => {
@@ -117,7 +125,23 @@ export default function NewDocumentPage() {
       payload.append("issue_date", form.issue_date);
       payload.append("expiry_date", form.expiry_date);
       payload.append("amount", form.amount || "0");
-      payload.append("notes", form.notes);
+      const formattedExtras = Object.entries(extraDetails)
+        .filter(([, value]) => value.trim().length > 0)
+        .map(([key, value]) => {
+          const labels: Record<string, string> = {
+            owner: t("documentForm.manualFields.owner"),
+            document_number: t("documentForm.manualFields.documentNumber"),
+            vin: t("documentForm.manualFields.vin"),
+            service: t("documentForm.manualFields.service"),
+            details: t("documentForm.manualFields.extraNotes"),
+          };
+          return `${labels[key] ?? key}: ${value.trim()}`;
+        })
+        .join("\n");
+      const finalNotes =
+        [form.notes, formattedExtras].filter((segment) => segment && segment.trim()).join("\n") ||
+        "";
+      payload.append("notes", finalNotes);
       if (file) {
         payload.append("document_file", file);
       }
@@ -164,8 +188,8 @@ export default function NewDocumentPage() {
                 onChange={(event) => {
                   const selected = event.target.files?.[0] ?? null;
                   setFile(selected);
-                  if (selected && !showDetails) {
-                    setShowDetails(true);
+                  if (selected && !showManualForm) {
+                    setShowManualForm(true);
                   }
                 }}
               />
@@ -197,22 +221,22 @@ export default function NewDocumentPage() {
             </p>
           )}
 
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
-              {t("documentForm.detailsHint")}
+              {t("documentForm.manualHint")}
             </p>
-            {!showDetails && (
-              <button
-                type="button"
-                onClick={() => setShowDetails(true)}
-                className="text-xs uppercase tracking-[0.3em] text-gold transition hover:text-neutral-100"
-              >
-                {t("documentForm.buttons.showDetails")}
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={() => setShowManualForm((prev) => !prev)}
+              className="text-xs uppercase tracking-[0.3em] text-gold transition hover:text-neutral-100"
+            >
+              {showManualForm
+                ? t("documentForm.buttons.hideManual")
+                : t("documentForm.buttons.manualEntry")}
+            </button>
           </div>
 
-          {showDetails && (
+          {showManualForm && (
             <div className="space-y-6 rounded-2xl border border-neutral-800 bg-neutral-950/60 p-5">
               <div className="grid gap-2">
                 <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">
@@ -305,6 +329,98 @@ export default function NewDocumentPage() {
                   placeholder={t("documentForm.placeholders.notes")}
                   className="min-h-[120px] rounded-2xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-sm text-neutral-100 focus:border-gold focus:outline-none"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                    {t("documentForm.advancedHint")}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvanced((prev) => !prev)}
+                    className="text-xs uppercase tracking-[0.3em] text-gold transition hover:text-neutral-100"
+                  >
+                    {showAdvanced
+                      ? t("documentForm.buttons.hideAdvanced")
+                      : t("documentForm.buttons.moreDetails")}
+                  </button>
+                </div>
+                {showAdvanced && (
+                  <div className="grid gap-4 rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4">
+                    <div className="grid gap-2">
+                      <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                        {t("documentForm.manualFields.owner")}
+                      </label>
+                      <input
+                        value={extraDetails.owner}
+                        onChange={(event) =>
+                          setExtraDetails((prev) => ({ ...prev, owner: event.target.value }))
+                        }
+                        className="rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-sm text-neutral-100 focus:border-gold focus:outline-none"
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                        {t("documentForm.manualFields.documentNumber")}
+                      </label>
+                      <input
+                        value={extraDetails.document_number}
+                        onChange={(event) =>
+                          setExtraDetails((prev) => ({
+                            ...prev,
+                            document_number: event.target.value,
+                          }))
+                        }
+                        className="rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-sm text-neutral-100 focus:border-gold focus:outline-none"
+                      />
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2 sm:gap-4">
+                      <div className="grid gap-2">
+                        <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                          {t("documentForm.manualFields.vin")}
+                        </label>
+                        <input
+                          value={extraDetails.vin}
+                          onChange={(event) =>
+                            setExtraDetails((prev) => ({ ...prev, vin: event.target.value }))
+                          }
+                          className="rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-sm text-neutral-100 focus:border-gold focus:outline-none"
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                          {t("documentForm.manualFields.service")}
+                        </label>
+                        <input
+                          value={extraDetails.service}
+                          onChange={(event) =>
+                            setExtraDetails((prev) => ({
+                              ...prev,
+                              service: event.target.value,
+                            }))
+                          }
+                          className="rounded-xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-sm text-neutral-100 focus:border-gold focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-2">
+                      <label className="text-xs uppercase tracking-[0.3em] text-neutral-500">
+                        {t("documentForm.manualFields.extraNotes")}
+                      </label>
+                      <textarea
+                        value={extraDetails.details}
+                        onChange={(event) =>
+                          setExtraDetails((prev) => ({
+                            ...prev,
+                            details: event.target.value,
+                          }))
+                        }
+                        className="min-h-[80px] rounded-2xl border border-neutral-700 bg-neutral-950 px-4 py-3 text-sm text-neutral-100 focus:border-gold focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -136,6 +136,7 @@ export default function CarDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [docActionError, setDocActionError] = useState<string | null>(null);
   const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(null);
+  const [actionsDoc, setActionsDoc] = useState<Document | null>(null);
   const [soatSnapshot, setSoatSnapshot] = useState<SoatSnapshot | null>(null);
   const [soatLoading, setSoatLoading] = useState(false);
   const [soatError, setSoatError] = useState<string | null>(null);
@@ -569,7 +570,7 @@ export default function CarDetailPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${
+                            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${
                               statusClasses[doc.status_indicator] || statusClasses.green
                             }`}
                           >
@@ -585,7 +586,7 @@ export default function CarDetailPage() {
                         <td className="px-4 py-3">
                           <div className="space-y-1">
                             <span
-                              className={`inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${aiBadgeClass}`}
+                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${aiBadgeClass}`}
                             >
                               {aiLabel}
                             </span>
@@ -597,30 +598,13 @@ export default function CarDetailPage() {
                           </div>
                         </td>
                         <td className="px-4 py-3">
-                          {fileUrl ? (
-                            <div className="flex flex-wrap gap-2">
-                              <a
-                                href={fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex rounded-full border border-neutral-700 px-3 py-1 text-xs uppercase tracking-[0.3em] text-neutral-200 transition hover:border-gold hover:text-gold"
-                              >
-                                {t("carDetail.documents.actions.viewFile")}
-                              </a>
-                              <button
-                                type="button"
-                                onClick={() => handleDeleteDocument(doc.id)}
-                                disabled={deletingDocumentId === doc.id}
-                                className="inline-flex rounded-full border border-rose-600/70 px-3 py-1 text-xs uppercase tracking-[0.3em] text-rose-200 transition hover:border-rose-400 disabled:opacity-50"
-                              >
-                                {deletingDocumentId === doc.id
-                                  ? t("carDetail.documents.actions.deleting")
-                                  : t("carDetail.documents.actions.delete")}
-                              </button>
-                            </div>
-                          ) : (
-                            <span className="text-neutral-500">—</span>
-                          )}
+                          <button
+                            type="button"
+                            onClick={() => setActionsDoc(doc)}
+                            className="text-xs uppercase tracking-[0.3em] text-gold underline underline-offset-4 transition hover:text-neutral-100"
+                          >
+                            {t("carDetail.documents.actions.open")}
+                          </button>
                         </td>
                       </tr>
                     );
@@ -966,3 +950,53 @@ export default function CarDetailPage() {
     </div>
   );
 }
+      {actionsDoc && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-sm space-y-4 rounded-3xl border border-neutral-700 bg-neutral-950/90 p-6 text-sm text-neutral-200">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold">
+                {actionsDoc.type_display ?? actionsDoc.type}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActionsDoc(null)}
+                className="text-xs uppercase tracking-[0.3em] text-neutral-500 hover:text-neutral-200"
+              >
+                {t("common.close")}
+              </button>
+            </div>
+            <p className="text-xs text-neutral-400">{t("carDetail.documents.actions.description")}</p>
+            <div className="flex flex-col gap-3">
+              {actionsDoc.document_file ? (
+                <a
+                  href={resolveFileUrl(actionsDoc.document_file) || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="rounded-full border border-neutral-700 px-4 py-2 text-center text-xs uppercase tracking-[0.3em] text-neutral-200 transition hover:border-gold hover:text-gold"
+                >
+                  {t("carDetail.documents.actions.viewFile")}
+                </a>
+              ) : (
+                <span className="text-neutral-500">
+                  {t("carDetail.documents.actions.noFile")}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  if (actionsDoc) {
+                    handleDeleteDocument(actionsDoc.id);
+                    setActionsDoc(null);
+                  }
+                }}
+                disabled={deletingDocumentId === actionsDoc.id}
+                className="rounded-full border border-rose-600/70 px-4 py-2 text-xs uppercase tracking-[0.3em] text-rose-200 transition hover:border-rose-400 disabled:opacity-50"
+              >
+                {deletingDocumentId === actionsDoc.id
+                  ? t("carDetail.documents.actions.deleting")
+                  : t("carDetail.documents.actions.delete")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}

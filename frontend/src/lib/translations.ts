@@ -231,12 +231,25 @@ const translations: Record<Locale, TranslationDictionary> = {
         submit: "Save document",
         saving: "Saving",
         back: "Back to vehicle",
-        showDetails: "Details",
+        manualEntry: "Add manually",
+        hideManual: "Hide manual form",
+        moreDetails: "More details",
+        hideAdvanced: "Hide details",
       },
       errors: {
         fileRequired: "Please attach an image for this document.",
       },
       detailsHint: "Details are filled automatically after upload.",
+      manualHint:
+        "If AI fails or you prefer to type them, enter the document data manually.",
+      advancedHint: "More optional details",
+      manualFields: {
+        owner: "Owner",
+        documentNumber: "Document number",
+        vin: "VIN",
+        service: "Service",
+        extraNotes: "Additional notes",
+      },
     },
     carDetail: {
       signInNotice: "Sign in to view vehicle details.",
@@ -292,6 +305,9 @@ const translations: Record<Locale, TranslationDictionary> = {
           viewFile: "View file",
           delete: "Delete",
           deleting: "Deleting...",
+          open: "Open actions",
+          description: "Choose what to do with this document.",
+          noFile: "No file available",
         },
         badges: {
           valid: "Valid",
@@ -605,12 +621,25 @@ const translations: Record<Locale, TranslationDictionary> = {
         submit: "Guardar documento",
         saving: "Guardando",
         back: "Volver al vehículo",
-        showDetails: "Detalles",
+        manualEntry: "Agregar manualmente",
+        hideManual: "Ocultar manual",
+        moreDetails: "Más detalles",
+        hideAdvanced: "Ocultar detalles",
       },
       errors: {
         fileRequired: "Adjunta una imagen para este documento.",
       },
       detailsHint: "Los detalles se completarán automáticamente después de subir el archivo.",
+      manualHint:
+        "Si la IA no puede leer el documento, completa los datos manualmente para evitar retrasos.",
+      advancedHint: "Más detalles opcionales",
+      manualFields: {
+        owner: "Propietario",
+        documentNumber: "Número del documento",
+        vin: "VIN",
+        service: "Servicio",
+        extraNotes: "Notas adicionales",
+      },
     },
     carDetail: {
       signInNotice: "Inicia sesión para ver el detalle del vehículo.",
@@ -666,6 +695,9 @@ const translations: Record<Locale, TranslationDictionary> = {
           viewFile: "Ver archivo",
           delete: "Eliminar",
           deleting: "Eliminando...",
+          open: "Abrir opciones",
+          description: "Elige qué quieres hacer con este documento.",
+          noFile: "No hay archivo disponible",
         },
         badges: {
           valid: "Válido",
