@@ -282,3 +282,12 @@ Archivos modificados:
   - Crear un documento sin capturar fecha; el POST debe responder 201 y `/api/cars/:id/` no debe lanzar 500.
 - Pendientes futuros
   - Evaluar si conviene mostrar "—" o un badge especial para documentos sin fecha.
+## [2025-11-14 20:11] — OCR ahora analiza todas las páginas del PDF
+- Cambios:
+  - backend/cars/services.py envía todas las páginas de un PDF a OpenAI (no solo la primera). Cada página se convierte a PNG y se añade como `input_image`.
+- Descripción técnica
+  - Las licencias tienen información de fechas al reverso; antes solo convertíamos la primera página, así que la IA nunca veía las fechas. Al generar una imagen por página y adjuntarlas en la misma solicitud, el modelo ya puede leer los campos "Fecha exp." y "Fecha venc." aunque estén en la segunda cara.
+- Pruebas necesarias
+  - Subir una licencia PDF de dos páginas y verificar que `raw_text` incluye las secciones de fechas y que el dashboard muestra los valores.
+- Pendientes futuros
+  - Si el documento es una imagen multipágina (TIFF), evaluar hacer lo mismo.

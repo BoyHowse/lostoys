@@ -150,11 +150,21 @@ class DocumentAIService:
 
     def _call_openai_once(self, document: Document, api_key: str) -> dict[str, Any]:
         client = OpenAI(api_key=api_key)
-        image_bytes, mime_type = self._load_document_bytes(document)
+        images = self._load_document_images(document)
         max_bytes = 8 * 1024 * 1024
-        if len(image_bytes) > max_bytes:
-            raise ValueError("El archivo supera el límite de 8MB para análisis.")
-        encoded = base64.b64encode(image_bytes).decode("utf-8")
+        contents = [
+            {"type": "input_text", "text": user_prompt},
+        ]
+        for img_bytes, mime_type in images:
+            if len(img_bytes) > max_bytes:
+                raise ValueError("El archivo supera el límite de 8MB para análisis.")
+            encoded = base64.b64encode(img_bytes).decode("utf-8")
+            contents.append(
+                {
+                    "type": "input_image",
+                    "image_url": f"data:{mime_type};base64,{encoded}",
+                }
+            )
         system_prompt = (
             "Eres un verificador de documentos colombianos. "
             "Analiza la imagen de una 'Licencia de Tránsito' y responde "
@@ -177,13 +187,7 @@ class DocumentAIService:
                 {"role": "system", "content": system_prompt},
                 {
                     "role": "user",
-                    "content": [
-                        {"type": "input_text", "text": user_prompt},
-                        {
-                            "type": "input_image",
-                            "image_url": f"data:{mime_type};base64,{encoded}",
-                        },
-                    ],
+                    "content": contents,
                 },
             ],
         )
@@ -199,27 +203,30 @@ class DocumentAIService:
             logger.error("Respuesta de IA no es JSON: %s", raw_response)
             raise ValueError("La IA devolvió un formato inesperado.") from exc
 
-    def _load_document_bytes(self, document: Document) -> tuple[bytes, str]:
+    def _load_document_images(self, document: Document) -> list[tuple[bytes, str]]:
         file_path = document.document_file.path
         mime_type, _ = mimetypes.guess_type(file_path)
         mime_type = mime_type or "image/jpeg"
         if mime_type == "application/pdf":
-            return self._render_pdf_to_png(file_path)
+            return self._render_pdf_pages(file_path)
         with open(file_path, "rb") as file_pointer:
-            return file_pointer.read(), mime_type
+            return [(file_pointer.read(), mime_type)]
 
-    def _render_pdf_to_png(self, path: str) -> tuple[bytes, str]:
+    def _render_pdf_pages(self, path: str) -> list[tuple[bytes, str]]:
         pdf = pdfium.PdfDocument(path)
         if len(pdf) == 0:
             raise ValueError("El PDF no contiene páginas.")
-        page = pdf.get_page(0)
-        bitmap = page.render(scale=2.5)
-        pil_image = bitmap.to_pil()
-        page.close()
+        images: list[tuple[bytes, str]] = []
+        for index in range(len(pdf)):
+            page = pdf.get_page(index)
+            bitmap = page.render(scale=2.5)
+            pil_image = bitmap.to_pil()
+            buffer = io.BytesIO()
+            pil_image.save(buffer, format="PNG")
+            images.append((buffer.getvalue(), "image/png"))
+            page.close()
         pdf.close()
-        buffer = io.BytesIO()
-        pil_image.save(buffer, format="PNG")
-        return buffer.getvalue(), "image/png"
+        return images
 
     def _mark_failure(self, document: Document, message: str) -> None:
         document.ai_status = Document.AIStatus.FAILED
