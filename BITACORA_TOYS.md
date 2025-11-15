@@ -306,3 +306,8 @@ Archivos modificados:
   - Antes el raw_text omitía la sección de fechas porque el PDF estaba en baja resolución y el prompt no enfatizaba esa información. Con la nueva instrucción y mayor escala, OpenAI aclara “FECHA MATRÍCULA 26/09/2023…”, permitiendo que `extract_dates` guardara emisión 26/09/2023 y vencimiento 11/07/2024.
 - Pruebas necesarias
   - Subir nuevamente una licencia de dos caras; confirmar que `/api/cars/:id/` devuelve issue_date/expiry_date correctas y que el dashboard las muestra.
+## [2025-11-14 21:39] — SaveGame Update
+Archivos modificados:
+- BITACORA_TOYS.md
+- savegametoys.md
+
