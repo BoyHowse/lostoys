@@ -152,19 +152,6 @@ class DocumentAIService:
         client = OpenAI(api_key=api_key)
         images = self._load_document_images(document)
         max_bytes = 8 * 1024 * 1024
-        contents = [
-            {"type": "input_text", "text": user_prompt},
-        ]
-        for img_bytes, mime_type in images:
-            if len(img_bytes) > max_bytes:
-                raise ValueError("El archivo supera el límite de 8MB para análisis.")
-            encoded = base64.b64encode(img_bytes).decode("utf-8")
-            contents.append(
-                {
-                    "type": "input_image",
-                    "image_url": f"data:{mime_type};base64,{encoded}",
-                }
-            )
         system_prompt = (
             "Eres un verificador de documentos colombianos. "
             "Analiza la imagen de una 'Licencia de Tránsito' y responde "
@@ -180,6 +167,19 @@ class DocumentAIService:
             "Si la imagen no es legible coloca readable=false y explica en 'reason'. "
             "Si no es una licencia, indícalo en 'reason'."
         )
+        contents = [
+            {"type": "input_text", "text": user_prompt},
+        ]
+        for img_bytes, mime_type in images:
+            if len(img_bytes) > max_bytes:
+                raise ValueError("El archivo supera el límite de 8MB para análisis.")
+            encoded = base64.b64encode(img_bytes).decode("utf-8")
+            contents.append(
+                {
+                    "type": "input_image",
+                    "image_url": f"data:{mime_type};base64,{encoded}",
+                }
+            )
         response = client.responses.create(
             model=getattr(settings, "OPENAI_MODEL", "gpt-4o-mini"),
             temperature=0,

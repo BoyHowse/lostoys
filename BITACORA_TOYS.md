@@ -291,3 +291,10 @@ Archivos modificados:
   - Subir una licencia PDF de dos páginas y verificar que `raw_text` incluye las secciones de fechas y que el dashboard muestra los valores.
 - Pendientes futuros
   - Si el documento es una imagen multipágina (TIFF), evaluar hacer lo mismo.
+## [2025-11-14 20:29] — Error por variable local en OCR multi-página
+- Cambios:
+  - backend/cars/services.py inicializa `user_prompt` antes de construir la lista `contents`, eliminando el `UnboundLocalError` que aparecía tras el cambio multi-página.
+- Descripción técnica
+  - Al mover `user_prompt` más abajo, `contents` lo usaba antes de definirlo; la IA nunca se ejecutaba y el frontend mostraba “cannot access local variable user_prompt”. Ahora la variable se define junto al prompt del sistema y el flujo vuelve a ejecutar la solicitud correctamente.
+- Pruebas necesarias
+  - Subir una licencia en PDF y comprobar que ya no sale el error; el documento debe pasar a “Procesando/Válido” y capturar fechas reales.
