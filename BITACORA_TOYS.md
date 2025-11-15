@@ -298,3 +298,11 @@ Archivos modificados:
   - Al mover `user_prompt` más abajo, `contents` lo usaba antes de definirlo; la IA nunca se ejecutaba y el frontend mostraba “cannot access local variable user_prompt”. Ahora la variable se define junto al prompt del sistema y el flujo vuelve a ejecutar la solicitud correctamente.
 - Pruebas necesarias
   - Subir una licencia en PDF y comprobar que ya no sale el error; el documento debe pasar a “Procesando/Válido” y capturar fechas reales.
+## [2025-11-14 20:41] — OCR fuerza lectura de fechas
+- Cambios:
+  - backend/cars/services.py envía todas las páginas del PDF en alta resolución (escala 3.5) y refuerza el prompt para que el modelo transcriba expresamente las líneas “FECHA EXP. LIC. TTO.” y “FECHA VENCIMIENTO”.
+  - Se reprocesó el documento #10 para verificar que ahora `raw_text` incluye esas fechas y los campos se llenan.
+- Descripción técnica
+  - Antes el raw_text omitía la sección de fechas porque el PDF estaba en baja resolución y el prompt no enfatizaba esa información. Con la nueva instrucción y mayor escala, OpenAI aclara “FECHA MATRÍCULA 26/09/2023…”, permitiendo que `extract_dates` guardara emisión 26/09/2023 y vencimiento 11/07/2024.
+- Pruebas necesarias
+  - Subir nuevamente una licencia de dos caras; confirmar que `/api/cars/:id/` devuelve issue_date/expiry_date correctas y que el dashboard las muestra.

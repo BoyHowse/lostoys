@@ -158,14 +158,16 @@ class DocumentAIService:
             "exclusivamente con JSON válido."
         )
         user_prompt = (
-            "Extrae los datos visibles de la Licencia de Tránsito. "
+            "Extrae TODAS las fechas y datos visibles de la Licencia de Tránsito. "
+            "Busca expresiones como 'FECHA EXP. LIC. TTO.', 'FECHA VENCIMIENTO', 'FECHA MATRÍCULA'. "
             "Responde este JSON exacto: "
             '{"readable":bool,"document_type":string,"reason":string,'
             '"confidence":number,"raw_text":string,"fields":{"owner":string,'
             '"plate":string,"vin":string,"service":string,"class":string,'
             '"issue_date":string,"expiry_date":string}}. '
             "Si la imagen no es legible coloca readable=false y explica en 'reason'. "
-            "Si no es una licencia, indícalo en 'reason'."
+            "Si no es una licencia, indícalo en 'reason'. "
+            "Incluye en raw_text el texto completo que puedas leer, especialmente las líneas donde aparecen fechas." 
         )
         contents = [
             {"type": "input_text", "text": user_prompt},
@@ -219,7 +221,7 @@ class DocumentAIService:
         images: list[tuple[bytes, str]] = []
         for index in range(len(pdf)):
             page = pdf.get_page(index)
-            bitmap = page.render(scale=2.5)
+            bitmap = page.render(scale=3.5)
             pil_image = bitmap.to_pil()
             buffer = io.BytesIO()
             pil_image.save(buffer, format="PNG")
