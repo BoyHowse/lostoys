@@ -254,3 +254,12 @@ Archivos modificados:
   - Simular rate limit (o forzarlo) y verificar que el documento queda marcado en rojo con el mensaje “Servicio de IA temporalmente saturado”.
 - Pendientes futuros
   - Exponer en la UI un botón “Reintentar análisis” que invoque internamente el comando/servicio sin pasar por la consola.
+## [2025-11-14 19:22] — Retries automáticos contra OpenAI
+- Cambios:
+  - backend/cars/services.py introduce `_call_openai_with_retry` con backoff configurable (`OPENAI_MAX_RETRIES`, `OPENAI_RETRY_BACKOFF`).
+- Descripción técnica
+  - Cuando OpenAI responde 429 u otro `APIError`, el servicio reintenta automáticamente con esperas crecientes antes de rendirse; esto evita que los documentos queden fallidos cuando la cuota todavía tiene margen.
+- Pruebas necesarias
+  - Forzar varios documentos seguidos y observar cómo el log muestra los reintentos antes de marcar WARNING.
+- Pendientes futuros
+  - Registrar métricas del número de reintentos para ajustar el backoff conforme al plan de uso.

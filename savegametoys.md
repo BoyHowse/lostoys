@@ -1,6 +1,6 @@
 # SAVEGAME TOYS
 
-_Actualizado: 2025-11-14T23:58:08.749Z_
+_Actualizado: 2025-11-15T00:22:51.213Z_
 
 ## 1. Arquitectura General
 - **Backend:** Django 5 + Django REST Framework. Autenticación por sesión, CSRF deshabilitado únicamente en `SessionLoginView`. Corre sobre PostgreSQL y lee configuración desde `backend/.env`.

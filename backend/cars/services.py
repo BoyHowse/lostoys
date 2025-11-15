@@ -6,6 +6,7 @@ import json
 import logging
 import mimetypes
 import threading
+import time
 from dataclasses import dataclass
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
@@ -57,7 +58,7 @@ class DocumentAIService:
         document.save(update_fields=["ai_status", "ai_feedback", "ai_checked_at"])
 
         try:
-            payload = self._call_openai(document, api_key)
+            payload = self._call_openai_with_retry(document, api_key)
         except openai.RateLimitError as exc:  # pragma: no cover - dependencia externa
             logger.warning("OpenAI rate limit para documento %s", document.pk)
             self._mark_rate_limit(document, exc)
@@ -125,7 +126,29 @@ class DocumentAIService:
             ],
         )
 
-    def _call_openai(self, document: Document, api_key: str) -> dict[str, Any]:
+    def _call_openai_with_retry(self, document: Document, api_key: str) -> dict[str, Any]:
+        max_retries = int(getattr(settings, "OPENAI_MAX_RETRIES", 4))
+        backoff_base = float(getattr(settings, "OPENAI_RETRY_BACKOFF", 5))
+        for attempt in range(1, max_retries + 1):
+            try:
+                return self._call_openai_once(document, api_key)
+            except (openai.RateLimitError, openai.APIError) as exc:
+                if attempt == max_retries:
+                    raise
+                delay = backoff_base * attempt
+                logger.warning(
+                    "OpenAI throttled (intento %s/%s) doc %s: %s. Reintentando en %.1fs",
+                    attempt,
+                    max_retries,
+                    document.pk,
+                    exc,
+                    delay,
+                )
+                time.sleep(delay)
+
+        raise RuntimeError("OpenAI retries exceeded")
+
+    def _call_openai_once(self, document: Document, api_key: str) -> dict[str, Any]:
         client = OpenAI(api_key=api_key)
         image_bytes, mime_type = self._load_document_bytes(document)
         max_bytes = 8 * 1024 * 1024
