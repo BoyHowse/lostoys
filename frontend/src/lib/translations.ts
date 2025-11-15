@@ -6,7 +6,7 @@ export type TranslationDictionary = Record<string, TranslationValue>;
 const translations: Record<Locale, TranslationDictionary> = {
   en: {
     header: {
-      nav: { dashboard: "Dashboard", upcoming: "Upcoming", settings: "Alerts" },
+      nav: { dashboard: "Dashboard", settings: "Settings" },
       signIn: "Sign in",
       logout: "Logout",
       loggedAs: "Logged as",
@@ -395,7 +395,7 @@ const translations: Record<Locale, TranslationDictionary> = {
   },
   es: {
     header: {
-      nav: { dashboard: "Panel", upcoming: "Próximos", settings: "Alertas" },
+      nav: { dashboard: "Panel", settings: "Configuración" },
       signIn: "Iniciar sesión",
       logout: "Cerrar sesión",
       loggedAs: "Conectado como",

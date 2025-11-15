@@ -6,12 +6,6 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useI18n } from "@/context/I18nContext";
 
-const navLinks = [
-  { href: "/", key: "header.nav.dashboard" },
-  { href: "/upcoming", key: "header.nav.upcoming" },
-  { href: "/settings", key: "header.nav.settings" },
-];
-
 export default function Header() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
@@ -34,19 +28,27 @@ export default function Header() {
           </span>
           <span className="font-semibold text-gold">LosToys</span>
         </Link>
-        <nav className="flex items-center gap-6 text-sm">
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
-            return (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`uppercase tracking-wide transition hover:text-gold ${isActive ? "text-gold" : "text-neutral-200"}`}
-              >
-                {t(link.key)}
-              </Link>
-            );
-          })}
+        <nav className="flex items-center gap-3 text-sm">
+          <Link
+            href="/"
+            className={`rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-widest transition ${
+              pathname === "/"
+                ? "border-gold bg-gold/10 text-gold"
+                : "border-neutral-700 text-neutral-200 hover:border-gold hover:text-gold"
+            }`}
+          >
+            {t("header.nav.dashboard")}
+          </Link>
+          <Link
+            href="/settings"
+            className={`rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-widest transition ${
+              pathname.startsWith("/settings")
+                ? "border-gold bg-gold/10 text-gold"
+                : "border-neutral-700 text-neutral-200 hover:border-gold hover:text-gold"
+            }`}
+          >
+            {t("header.nav.settings")}
+          </Link>
         </nav>
         <div className="flex items-center gap-4 text-sm text-neutral-200">
           <button
