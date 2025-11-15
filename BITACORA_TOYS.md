@@ -273,3 +273,12 @@ Archivos modificados:
   - Subir una licencia, verificar que en la DB (o `/api/cars/:id/`) `issue_date`/`expiry_date` quedan `null` hasta que el análisis termine.
 - Pendientes futuros
   - Para documentos distintos a la licencia, ofrecer un “autocompletar con hoy” opcional en vez de obligar al usuario a escribir.
+## [2025-11-14 19:58] — Manejo de documentos sin fecha
+- Cambios:
+  - backend/cars/models.py maneja `expiry_date=None` retornando un valor alto en `days_until_expiry` y evitando el error al restar con `None`.
+- Descripción técnica
+  - Tras permitir fechas nulas, la API fallaba en `status_indicator` porque intentaba restar `None - date`. Ahora, si no hay fecha, se considera un documento "sin vencimiento" y no revienta el serializer.
+- Pruebas necesarias
+  - Crear un documento sin capturar fecha; el POST debe responder 201 y `/api/cars/:id/` no debe lanzar 500.
+- Pendientes futuros
+  - Evaluar si conviene mostrar "—" o un badge especial para documentos sin fecha.

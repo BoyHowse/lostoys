@@ -110,6 +110,8 @@ class Document(TimeStampedModel):
         return f"{self.get_type_display()} - {self.car.plate}"
 
     def days_until_expiry(self) -> int:
+        if not self.expiry_date:
+            return 9999  # interpret as far future/no expiry
         today = timezone.now().date()
         return (self.expiry_date - today).days
 
