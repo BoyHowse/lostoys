@@ -602,9 +602,7 @@ export default function CarDetailPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-xs uppercase tracking-[0.3em] text-neutral-500">
-                          {t("carDetail.documents.actions.tapRow")}
-                        </td>
+                        <td className="px-4 py-3 text-neutral-500">—</td>
                       </tr>
                     );
                   })}
