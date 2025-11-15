@@ -125,6 +125,7 @@ export default function UpcomingPage() {
         />
       ) : (
         <div className="overflow-hidden rounded-3xl border border-neutral-800 bg-neutral-900/60">
+          <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-neutral-800 text-sm text-neutral-200">
             <thead className="bg-neutral-900/80 text-xs uppercase tracking-[0.3em] text-neutral-500">
               <tr>
@@ -171,6 +172,8 @@ export default function UpcomingPage() {
               ))}
             </tbody>
           </table>
+          </table>
+          </div>
         </div>
       )}
     </div>

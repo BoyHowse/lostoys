@@ -412,7 +412,7 @@ export default function CarDetailPage() {
 
   return (
     <>
-      <div className="space-y-8">
+      <div className="space-y-8 px-3 pb-10 md:px-0">
       <div className="flex flex-col gap-6 rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 shadow-glow lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
@@ -507,6 +507,7 @@ export default function CarDetailPage() {
             />
           ) : (
             <div className="overflow-hidden rounded-2xl border border-neutral-800">
+              <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-neutral-800 text-sm text-neutral-200">
                 <thead className="bg-neutral-900/80 text-xs uppercase tracking-[0.3em] text-neutral-500">
                   <tr>
@@ -988,9 +989,10 @@ export default function CarDetailPage() {
                   : t("carDetail.documents.actions.delete")}
               </button>
             </div>
-          </div>
-        </div>
-      )}
+              </table>
+              </div>
+            </div>
+          )}
     </>
   );
 }

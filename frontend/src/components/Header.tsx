@@ -20,7 +20,7 @@ export default function Header() {
 
   return (
     <header className="border-b border-gold/30 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 text-white">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
+      <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-4 md:flex-row md:items-center md:justify-between md:gap-6">
         <div className="flex flex-1 items-center gap-3">
           <Link href="/" className="flex items-center gap-2 text-2xl font-semibold tracking-wide">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-gold bg-neutral-950 text-gold">
@@ -33,7 +33,7 @@ export default function Header() {
             <span className="font-semibold text-gold">LosToys</span>
           </Link>
         </div>
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex w-full flex-wrap items-center gap-3 text-sm md:w-auto md:justify-end">
           {user && (
             <span className="rounded-full border border-amber-400 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-amber-300">
               {displayName}

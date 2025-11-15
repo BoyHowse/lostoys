@@ -157,7 +157,7 @@ export default function NewDocumentPage() {
 
   return (
     <div className="space-y-8">
-      <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 px-8 py-10 shadow-glow">
+      <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 px-4 py-6 shadow-glow md:px-8 md:py-10">
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
             {t("documentForm.title")}
