@@ -531,9 +531,6 @@ export default function CarDetailPage() {
                     <th className="px-4 py-3 text-left">
                       {t("carDetail.documents.columns.validation")}
                     </th>
-                    <th className="px-4 py-3 text-left">
-                      {t("carDetail.documents.columns.file")}
-                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800">
@@ -602,7 +599,6 @@ export default function CarDetailPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-neutral-500">—</td>
                       </tr>
                     );
                   })}
