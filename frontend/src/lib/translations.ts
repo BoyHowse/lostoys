@@ -389,6 +389,9 @@ const translations: Record<Locale, TranslationDictionary> = {
       documentDelete: "We couldn't delete the document. Please try again.",
       loadSoat: "Unable to load SOAT information",
     },
+  common: {
+    close: "Close",
+  },
   },
   es: {
     header: {
@@ -780,6 +783,9 @@ const translations: Record<Locale, TranslationDictionary> = {
       documentDelete: "No pudimos eliminar el documento. Intenta de nuevo.",
       loadSoat: "No fue posible obtener datos del SOAT",
     },
+  common: {
+    close: "Cerrar",
+  },
   },
 };
 

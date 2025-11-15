@@ -411,7 +411,8 @@ export default function CarDetailPage() {
     statusIndicatorLabels[car.health_status] ?? car.health_status;
 
   return (
-    <div className="space-y-8">
+    <>
+      <div className="space-y-8">
       <div className="flex flex-col gap-6 rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 shadow-glow lg:flex-row lg:items-end lg:justify-between">
         <div className="space-y-3">
           <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
@@ -947,9 +948,7 @@ export default function CarDetailPage() {
           )}
         </section>
       )}
-    </div>
-  );
-}
+      </div>
       {actionsDoc && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
           <div className="w-full max-w-sm space-y-4 rounded-3xl border border-neutral-700 bg-neutral-950/90 p-6 text-sm text-neutral-200">
@@ -1000,3 +999,6 @@ export default function CarDetailPage() {
           </div>
         </div>
       )}
+    </>
+  );
+}
