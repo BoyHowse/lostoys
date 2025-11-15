@@ -989,10 +989,6 @@ export default function CarDetailPage() {
                   : t("carDetail.documents.actions.delete")}
               </button>
             </div>
-              </table>
-              </div>
-            </div>
-          )}
     </>
   );
 }
