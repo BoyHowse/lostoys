@@ -10,6 +10,9 @@ export default function Header() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { t, locale, setLocale } = useI18n();
+  const displayName = user
+    ? `${user.first_name || user.username} ${user.last_name || ""}`.trim().toUpperCase()
+    : "";
 
   const toggleLocale = () => {
     setLocale(locale === "es" ? "en" : "es");
@@ -18,17 +21,24 @@ export default function Header() {
   return (
     <header className="border-b border-gold/30 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 text-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-6 py-4">
-        <Link href="/" className="flex items-center gap-2 text-2xl font-semibold tracking-wide">
-          <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-gold bg-neutral-950 text-gold">
-            <span className="relative inline-flex h-6 w-7 items-center justify-center">
-              <span className="absolute top-1/2 left-1/2 h-3 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gold" />
-              <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full border border-gold bg-neutral-950" />
-              <span className="absolute right-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full border border-gold bg-neutral-950" />
+        <div className="flex flex-1 items-center gap-3">
+          <Link href="/" className="flex items-center gap-2 text-2xl font-semibold tracking-wide">
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border-2 border-gold bg-neutral-950 text-gold">
+              <span className="relative inline-flex h-6 w-7 items-center justify-center">
+                <span className="absolute top-1/2 left-1/2 h-3 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-gold" />
+                <span className="absolute left-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full border border-gold bg-neutral-950" />
+                <span className="absolute right-0 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full border border-gold bg-neutral-950" />
+              </span>
             </span>
-          </span>
-          <span className="font-semibold text-gold">LosToys</span>
-        </Link>
-        <nav className="flex items-center gap-3 text-sm">
+            <span className="font-semibold text-gold">LosToys</span>
+          </Link>
+        </div>
+        <div className="flex items-center gap-3 text-sm">
+          {user && (
+            <span className="rounded-full border border-amber-400 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-amber-300">
+              {displayName}
+            </span>
+          )}
           <Link
             href="/"
             className={`rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-widest transition ${
@@ -49,8 +59,6 @@ export default function Header() {
           >
             {t("header.nav.settings")}
           </Link>
-        </nav>
-        <div className="flex items-center gap-4 text-sm text-neutral-200">
           <button
             type="button"
             onClick={toggleLocale}
@@ -62,25 +70,15 @@ export default function Header() {
               : t("header.languageShort.en")}
           </button>
           {user ? (
-            <>
-              <div className="flex flex-col leading-tight">
-                <span className="text-xs uppercase tracking-widest text-neutral-400">
-                  {t("header.loggedAs")}
-                </span>
-                <span className="text-gold">
-                  {user.first_name || user.username} {user.last_name || ""}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  void logout();
-                }}
-                className="rounded-full border border-gold px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gold transition hover:bg-gold hover:text-black"
-              >
-                {t("header.logout")}
-              </button>
-            </>
+            <button
+              type="button"
+              onClick={() => {
+                void logout();
+              }}
+              className="rounded-full border border-gold px-3 py-1 text-xs font-semibold uppercase tracking-wider text-gold transition hover:bg-gold hover:text-black"
+            >
+              {t("header.logout")}
+            </button>
           ) : (
             <Link
               href="/login"
