@@ -23,10 +23,24 @@ export default function Header() {
   const actionButtons = (
     <>
       {user && (
-        <span className="rounded-full border border-amber-400 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-amber-300">
-          {displayName}
-        </span>
+        <Link
+          href="/settings"
+          onClick={() => setMobileOpen(false)}
+          className="rounded-full border border-amber-400 px-4 py-1 text-xs font-semibold uppercase tracking-widest text-amber-300 transition hover:border-gold hover:text-gold"
+        >
+          {displayName || t("header.loggedAs")}
+        </Link>
       )}
+      <Link
+        href="/notifications"
+        className={`rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-widest transition ${
+          pathname.startsWith("/notifications")
+            ? "border-gold bg-gold/10 text-gold"
+            : "border-neutral-700 text-neutral-200 hover:border-gold hover:text-gold"
+        }`}
+      >
+        {t("header.nav.notifications")}
+      </Link>
       <Link
         href="/"
         className={`rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-widest transition ${
@@ -36,16 +50,6 @@ export default function Header() {
         }`}
       >
         {t("header.nav.dashboard")}
-      </Link>
-      <Link
-        href="/settings"
-        className={`rounded-full border px-4 py-1 text-xs font-semibold uppercase tracking-widest transition ${
-          pathname.startsWith("/settings")
-            ? "border-gold bg-gold/10 text-gold"
-            : "border-neutral-700 text-neutral-200 hover:border-gold hover:text-gold"
-        }`}
-      >
-        {t("header.nav.settings")}
       </Link>
       <button
         type="button"
@@ -106,7 +110,9 @@ export default function Header() {
       </div>
       {mobileOpen && (
         <div className="border-t border-neutral-800 bg-neutral-950/95 px-4 py-4 md:hidden">
-          <div className="flex flex-col gap-3">{actionButtons}</div>
+          <div className="flex flex-col gap-3">
+            {actionButtons}
+          </div>
         </div>
       )}
     </header>

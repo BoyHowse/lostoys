@@ -23,6 +23,7 @@ from openai import OpenAI
 import pypdfium2 as pdfium
 
 from .models import Document
+from .image_service import ensure_car_image
 from .ocr import extract_dates
 
 logger = logging.getLogger(__name__)
@@ -125,6 +126,10 @@ class DocumentAIService:
                 "amount",
             ],
         )
+        try:
+            ensure_car_image(document.car)
+        except Exception:  # pragma: no cover - background safety
+            logger.exception("No se pudo generar la imagen del vehículo %s", document.car_id)
 
     def _call_openai_with_retry(self, document: Document, api_key: str) -> dict[str, Any]:
         max_retries = int(getattr(settings, "OPENAI_MAX_RETRIES", 4))

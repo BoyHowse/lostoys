@@ -316,3 +316,21 @@ Archivos modificados:
 - BITACORA_TOYS.md
 - savegametoys.md
 
+## [2025-11-16 12:58] — SaveGame Update
+Archivos modificados:
+- BITACORA_TOYS.md
+- backend/alerts/models.py
+- backend/alerts/services.py
+- backend/cars/admin.py
+- backend/cars/models.py
+- backend/cars/services.py
+- backend/config/settings.py
+- frontend/src/app/cars/[id]/page.tsx
+- frontend/src/app/page.tsx
+- frontend/src/app/upcoming/page.tsx
+- frontend/src/components/Header.tsx
+- frontend/src/components/VehicleCard.tsx
+- frontend/src/lib/fetcher.js
+- frontend/src/lib/translations.ts
+- savegametoys.md
+

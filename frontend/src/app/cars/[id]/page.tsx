@@ -1,14 +1,15 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/LoadingState";
 import { useAuth } from "@/context/AuthContext";
 import { useI18n } from "@/context/I18nContext";
-import { del as delRequest, get, post } from "@/lib/fetcher";
+import { del as delRequest, get, post, patchForm } from "@/lib/fetcher";
 
 type Document = {
   id: number;
@@ -56,6 +57,7 @@ type CarDetail = {
   model: string;
   plate: string;
   year: number;
+  photo?: string | null;
   estimated_value?: string;
   status: string;
   health_status: string;
@@ -105,13 +107,21 @@ const statusClasses: Record<string, string> = {
   green: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
 };
 
-const aiStatusClasses: Record<string, string> = {
-  pending: "border-neutral-700 bg-neutral-900/40 text-neutral-200",
-  processing: "border-sky-500/40 bg-sky-500/10 text-sky-100",
-  completed: "border-emerald-500/40 bg-emerald-500/10 text-emerald-100",
-  warning: "border-amber-500/40 bg-amber-500/10 text-amber-100",
-  failed: "border-rose-500/40 bg-rose-500/10 text-rose-100",
+const statusTextClasses: Record<string, string> = {
+  red: "text-rose-300",
+  yellow: "text-amber-200",
+  green: "text-emerald-200",
 };
+
+const aiStatusClasses: Record<string, string> = {
+  pending: "text-neutral-300",
+  processing: "text-sky-300",
+  completed: "text-emerald-300",
+  warning: "text-amber-200",
+  failed: "text-rose-300",
+};
+
+const fallbackCarImage = "/backgrounds/dashboard-car.jpg";
 
 export default function CarDetailPage() {
   const params = useParams();
@@ -127,7 +137,7 @@ export default function CarDetailPage() {
     if (/^https?:\/\//i.test(value)) {
       return value;
     }
-    return `${apiBaseUrl}${value}`;
+    return `${apiBaseUrl}${value.startsWith("/") ? value : `/${value}`}`;
   };
   const [car, setCar] = useState<CarDetail | null>(null);
   const [activeTab, setActiveTab] = useState<TabKey>("documents");
@@ -137,10 +147,22 @@ export default function CarDetailPage() {
   const [docActionError, setDocActionError] = useState<string | null>(null);
   const [deletingDocumentId, setDeletingDocumentId] = useState<number | null>(null);
   const [actionsDoc, setActionsDoc] = useState<Document | null>(null);
+  const [photoModalOpen, setPhotoModalOpen] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const [photoError, setPhotoError] = useState<string | null>(null);
   const [soatSnapshot, setSoatSnapshot] = useState<SoatSnapshot | null>(null);
   const [soatLoading, setSoatLoading] = useState(false);
   const [soatError, setSoatError] = useState<string | null>(null);
   const [refreshingSoat, setRefreshingSoat] = useState(false);
+  useEffect(() => {
+    return () => {
+      if (photoPreview) {
+        URL.revokeObjectURL(photoPreview);
+      }
+    };
+  }, [photoPreview]);
 
   const tabLabels: Record<TabKey, string> = {
     documents: t("carDetail.sections.documents"),
@@ -163,12 +185,6 @@ export default function CarDetailPage() {
     completed: t("documents.aiStatus.completed"),
     warning: t("documents.aiStatus.warning"),
     failed: t("documents.aiStatus.failed"),
-  };
-
-  const carStatusLabels: Record<string, string> = {
-    active: t("common.statuses.car.active"),
-    sold: t("common.statuses.car.sold"),
-    inactive: t("common.statuses.car.inactive"),
   };
 
   const notificationTypeLabels: Record<string, string> = {
@@ -347,6 +363,59 @@ export default function CarDetailPage() {
     setCar(updatedCar);
   };
 
+  const openPhotoModal = () => {
+    setPhotoError(null);
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    setPhotoModalOpen(true);
+  };
+
+  const closePhotoModal = () => {
+    setPhotoModalOpen(false);
+    setPhotoError(null);
+    setPhotoFile(null);
+    setPhotoPreview(null);
+  };
+
+  const handlePhotoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      setPhotoFile(null);
+      setPhotoPreview(null);
+      return;
+    }
+    setPhotoError(null);
+    setPhotoFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoPreview((prev) => {
+      if (prev) {
+        URL.revokeObjectURL(prev);
+      }
+      return previewUrl;
+    });
+  };
+
+  const handlePhotoSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!photoFile) {
+      setPhotoError(t("carDetail.photo.errors.required"));
+      return;
+    }
+    setPhotoUploading(true);
+    try {
+      const payload = new FormData();
+      payload.append("photo", photoFile);
+      await patchForm(`/api/cars/${carId}/`, payload);
+      await refreshCar();
+      closePhotoModal();
+    } catch (error) {
+      const err = error as Error;
+      setPhotoError(err.message || t("carDetail.photo.errors.generic"));
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
   const handleDeleteDocument = async (docId: number) => {
     if (!carId) {
       return;
@@ -406,51 +475,64 @@ export default function CarDetailPage() {
     );
   }
 
-  const carStatusLabel = carStatusLabels[car.status] ?? car.status;
   const healthStatusLabel =
     statusIndicatorLabels[car.health_status] ?? car.health_status;
+  const heroPhotoUrl = resolveFileUrl(car.photo) || fallbackCarImage;
 
   return (
     <>
       <div className="space-y-8 px-3 pb-10 md:px-0">
-      <div className="flex flex-col gap-6 rounded-3xl border border-neutral-800 bg-neutral-900/60 p-8 shadow-glow lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-3">
-          <p className="text-xs uppercase tracking-[0.3em] text-neutral-500">
-            {t("carDetail.vehicleCard.vehicleNumber")} {car.id}
-          </p>
-          <h1 className="text-4xl font-semibold text-gold">
-            {car.brand} {car.model}
-          </h1>
-          <p className="text-sm uppercase tracking-[0.4em] text-neutral-400">
-            {car.plate}
-          </p>
-          <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.3em] text-neutral-400">
-            <span className="rounded-full border border-neutral-700 px-3 py-1">
-              {t("vehicleCard.labels.year")} {car.year}
-            </span>
-            <span className="rounded-full border border-neutral-700 px-3 py-1">
-              {t("carDetail.vehicleCard.statusLabel")} {carStatusLabel}
-            </span>
-            <span
-              className={`rounded-full border px-3 py-1 ${
-                statusClasses[car.health_status] || statusClasses.green
-              }`}
+      <div className="rounded-3xl border border-neutral-800 bg-neutral-900/60 p-6 shadow-glow">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center">
+            <button
+              type="button"
+              onClick={openPhotoModal}
+              aria-label={t("carDetail.photo.change")}
+              className="relative h-28 w-28 overflow-hidden rounded-full border border-neutral-700 bg-neutral-950/70 p-1 transition hover:border-gold focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
             >
-              {healthStatusLabel}
-            </span>
+              <img
+                src={heroPhotoUrl}
+                alt={`${car.brand} ${car.model}`}
+                className="h-full w-full rounded-full object-cover"
+              />
+              <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-black/80 px-2 py-0.5 text-[10px] uppercase tracking-[0.3em] text-gold">
+                {t("carDetail.photo.badge")}
+              </span>
+            </button>
+            <div className="space-y-3">
+              <h1 className="text-4xl font-semibold text-gold">
+                {car.brand} {car.model}
+              </h1>
+              <p className="text-sm uppercase tracking-[0.4em] text-neutral-400">
+                {car.plate}
+              </p>
+              <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.3em] text-neutral-400">
+                <span className="rounded-full border border-neutral-700 px-3 py-1">
+                  {t("vehicleCard.labels.year")} {car.year}
+                </span>
+                <span
+                  className={`rounded-full border px-3 py-1 ${
+                    statusClasses[car.health_status] || statusClasses.green
+                  }`}
+                >
+                  {healthStatusLabel}
+                </span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="space-y-4 text-sm text-neutral-300">
-          <p>
-            {t("carDetail.vehicleCard.estimatedValue")}: $
-            {Number.parseFloat(car.estimated_value ?? "0").toLocaleString()}
-          </p>
-          <Link
-            href={`/cars/${car.id}/edit`}
-            className="inline-flex items-center rounded-full border border-gold px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-gold transition hover:bg-gold hover:text-black"
-          >
-            {t("carDetail.vehicleCard.edit")}
-          </Link>
+          <div className="space-y-4 text-sm text-neutral-300">
+            <p>
+              {t("carDetail.vehicleCard.estimatedValue")}: $
+              {Number.parseFloat(car.estimated_value ?? "0").toLocaleString()}
+            </p>
+            <Link
+              href={`/cars/${car.id}/edit`}
+              className="inline-flex items-center rounded-full border border-gold px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-gold transition hover:bg-gold hover:text-black"
+            >
+              {t("carDetail.vehicleCard.edit")}
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -550,7 +632,6 @@ export default function CarDetailPage() {
                       (isValidLicense
                         ? t("carDetail.documents.validationMessages.valid")
                         : "");
-                    const fileUrl = resolveFileUrl(doc.document_file);
                     return (
                       <tr
                         key={doc.id}
@@ -573,8 +654,9 @@ export default function CarDetailPage() {
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${
-                              statusClasses[doc.status_indicator] || statusClasses.green
+                            className={`text-xs font-semibold uppercase tracking-[0.3em] ${
+                              statusTextClasses[doc.status_indicator] ||
+                              statusTextClasses.green
                             }`}
                           >
                             {statusIndicatorLabels[doc.status_indicator] ||
@@ -589,7 +671,7 @@ export default function CarDetailPage() {
                         <td className="px-4 py-3">
                           <div className="space-y-1">
                             <span
-                              className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] ${aiBadgeClass}`}
+                              className={`text-xs font-semibold uppercase tracking-[0.3em] ${aiBadgeClass}`}
                             >
                               {aiLabel}
                             </span>
@@ -605,6 +687,7 @@ export default function CarDetailPage() {
                   })}
                 </tbody>
               </table>
+            </div>
             </div>
           )}
         </section>
@@ -942,9 +1025,88 @@ export default function CarDetailPage() {
         </section>
       )}
       </div>
+      {photoModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4"
+          onClick={closePhotoModal}
+        >
+          <form
+            onSubmit={handlePhotoSubmit}
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-md space-y-5 rounded-3xl border border-neutral-700 bg-neutral-950/95 p-6 text-sm text-neutral-100"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-semibold">
+                {t("carDetail.photo.title")}
+              </h3>
+              <button
+                type="button"
+                onClick={closePhotoModal}
+                className="text-xs uppercase tracking-[0.3em] text-neutral-500 transition hover:text-neutral-200"
+              >
+                {t("common.close")}
+              </button>
+            </div>
+            <p className="text-xs text-neutral-400">
+              {t("carDetail.photo.description")}
+            </p>
+            <div className="flex items-center gap-4">
+              <div className="h-24 w-24 overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900">
+                <img
+                  src={photoPreview || heroPhotoUrl}
+                  alt={`${car.brand} ${car.model}`}
+                  className="h-full w-full object-cover"
+                />
+              </div>
+              <p className="text-xs text-neutral-500">
+                {t("carDetail.photo.hint")}
+              </p>
+            </div>
+            <label className="text-xs font-semibold uppercase tracking-[0.3em] text-neutral-400">
+              {t("carDetail.photo.uploadLabel")}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handlePhotoChange}
+                className="mt-2 block w-full cursor-pointer rounded-full border border-neutral-800 bg-neutral-900/70 px-4 py-2 text-[11px] text-neutral-200 file:mr-4 file:rounded-full file:border-0 file:bg-gold file:px-4 file:py-2 file:text-[11px] file:font-semibold file:uppercase file:text-black"
+              />
+            </label>
+            <p className="text-[11px] text-neutral-500">
+              {t("carDetail.photo.uploadHint")}
+            </p>
+            {photoError && (
+              <p className="text-xs text-rose-300">{photoError}</p>
+            )}
+            <div className="flex justify-end gap-3 text-xs font-semibold uppercase tracking-[0.3em]">
+              <button
+                type="button"
+                onClick={closePhotoModal}
+                className="rounded-full border border-neutral-700 px-4 py-2 text-neutral-300 transition hover:border-gold hover:text-gold"
+              >
+                {t("carDetail.photo.cancel")}
+              </button>
+              <button
+                type="submit"
+                disabled={photoUploading}
+                className="rounded-full border border-gold bg-gold px-5 py-2 text-black transition hover:bg-gold/90 disabled:opacity-60"
+              >
+                {photoUploading
+                  ? t("carDetail.photo.saving")
+                  : t("carDetail.photo.save")}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       {actionsDoc && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-sm space-y-4 rounded-3xl border border-neutral-700 bg-neutral-950/90 p-6 text-sm text-neutral-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4"
+          onClick={() => setActionsDoc(null)}
+        >
+          <div
+            className="w-full max-w-sm space-y-4 rounded-3xl border border-neutral-700 bg-neutral-950/90 p-6 text-sm text-neutral-200"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="flex items-center justify-between">
               <h3 className="text-base font-semibold">
                 {actionsDoc.type_display ?? actionsDoc.type}
@@ -957,7 +1119,9 @@ export default function CarDetailPage() {
                 {t("common.close")}
               </button>
             </div>
-            <p className="text-xs text-neutral-400">{t("carDetail.documents.actions.description")}</p>
+            <p className="text-xs text-neutral-400">
+              {t("carDetail.documents.actions.description")}
+            </p>
             <div className="flex flex-col gap-3">
               {actionsDoc.document_file ? (
                 <a
@@ -989,6 +1153,9 @@ export default function CarDetailPage() {
                   : t("carDetail.documents.actions.delete")}
               </button>
             </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

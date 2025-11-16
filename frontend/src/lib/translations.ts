@@ -6,7 +6,7 @@ export type TranslationDictionary = Record<string, TranslationValue>;
 const translations: Record<Locale, TranslationDictionary> = {
   en: {
     header: {
-      nav: { dashboard: "Dashboard", settings: "Settings" },
+      nav: { dashboard: "Dashboard", settings: "Settings", notifications: "Notifications" },
       signIn: "Sign in",
       logout: "Logout",
       loggedAs: "Logged as",
@@ -278,6 +278,23 @@ const translations: Record<Locale, TranslationDictionary> = {
         estimatedValue: "Estimated value",
         edit: "Edit vehicle",
       },
+      photo: {
+        badge: "EDIT",
+        change: "Change photo",
+        helper: "Tap the avatar to upload the real picture or refresh the AI render.",
+        title: "Vehicle photo",
+        description: "Upload a real shot of the car or keep LosToys' AI render as a reference.",
+        hint: "Prefer your own photo? Select a JPG, PNG, or WebP below.",
+        uploadLabel: "Upload image",
+        uploadHint: "Max 5 MB. Formats: JPG, PNG, WebP.",
+        cancel: "Cancel",
+        save: "Save photo",
+        saving: "Saving...",
+        errors: {
+          required: "Choose an image before saving.",
+          generic: "We couldn't update the photo. Please try again.",
+        },
+      },
       buttons: {
         addDocument: "Add document",
         addCredit: "Add credit",
@@ -389,13 +406,24 @@ const translations: Record<Locale, TranslationDictionary> = {
       documentDelete: "We couldn't delete the document. Please try again.",
       loadSoat: "Unable to load SOAT information",
     },
+    notificationsPage: {
+      title: "Notifications",
+      subtitle: "Daily and weekly summaries for upcoming and expired documents.",
+      loading: "Loading notifications…",
+      error: "Unable to load notifications",
+      emptyTitle: "No notifications yet",
+      emptyDescription:
+        "When a document is close to expiring or already expired, alerts will appear here.",
+      signInTitle: "Sign in to view notifications",
+      signInDescription: "Access your account to see app, email, SMS, or WhatsApp alerts.",
+    },
   common: {
     close: "Close",
   },
   },
   es: {
     header: {
-      nav: { dashboard: "Panel", settings: "Configuración" },
+      nav: { dashboard: "Panel", settings: "Configuración", notifications: "Notificaciones" },
       signIn: "Iniciar sesión",
       logout: "Cerrar sesión",
       loggedAs: "Conectado como",
@@ -671,6 +699,24 @@ const translations: Record<Locale, TranslationDictionary> = {
         estimatedValue: "Valor estimado",
         edit: "Editar vehículo",
       },
+      photo: {
+        badge: "EDITAR",
+        change: "Cambiar foto",
+        helper: "Toca el avatar para subir la foto real o refrescar el render de IA.",
+        title: "Foto del vehículo",
+        description:
+          "Sube una imagen real del auto o conserva la referencia generada por LosToys.",
+        hint: "¿Prefieres tu propia imagen? Selecciona un JPG, PNG o WebP.",
+        uploadLabel: "Subir imagen",
+        uploadHint: "Máximo 5 MB. Formatos permitidos: JPG, PNG, WebP.",
+        cancel: "Cancelar",
+        save: "Guardar foto",
+        saving: "Guardando...",
+        errors: {
+          required: "Selecciona una imagen antes de guardar.",
+          generic: "No pudimos actualizar la foto. Intenta nuevamente.",
+        },
+      },
       buttons: {
         addDocument: "Agregar documento",
         addCredit: "Agregar crédito",
@@ -782,6 +828,18 @@ const translations: Record<Locale, TranslationDictionary> = {
       loadCar: "No fue posible cargar el vehículo",
       documentDelete: "No pudimos eliminar el documento. Intenta de nuevo.",
       loadSoat: "No fue posible obtener datos del SOAT",
+    },
+    notificationsPage: {
+      title: "Notificaciones",
+      subtitle:
+        "Resúmenes diarios y semanales de documentos próximos a vencer o ya vencidos.",
+      loading: "Cargando notificaciones…",
+      error: "No pudimos cargar las notificaciones",
+      emptyTitle: "Sin notificaciones aún",
+      emptyDescription:
+        "Cuando algún documento esté por vencer o vencido, verás las alertas aquí.",
+      signInTitle: "Inicia sesión para ver notificaciones",
+      signInDescription: "Ingresa para ver alertas en la app, correo, SMS o WhatsApp.",
     },
   common: {
     close: "Cerrar",

@@ -8,6 +8,7 @@ from django.db import models
 
 class Notification(models.Model):
     class NotificationType(models.TextChoices):
+        APP = "app", "App"
         EMAIL = "email", "Email"
         WHATSAPP = "whatsapp", "WhatsApp"
         SMS = "sms", "SMS"

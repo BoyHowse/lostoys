@@ -1,8 +1,10 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import Link from "next/link";
 
 import { useI18n } from "@/context/I18nContext";
+import { API_BASE_URL } from "@/lib/fetcher";
 
 const statusStyles: Record<string, string> = {
   green: "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
@@ -24,11 +26,24 @@ type Car = {
   model: string;
   plate: string;
   year: number;
+  photo?: string | null;
   estimated_value?: string;
   status: string;
   health_status: string;
   documents: Document[];
 };
+
+const FALLBACK_CAR_IMAGE = "/backgrounds/dashboard-car.jpg";
+
+function resolvePhoto(photo?: string | null): string {
+  if (!photo) {
+    return FALLBACK_CAR_IMAGE;
+  }
+  if (/^https?:\/\//i.test(photo)) {
+    return photo;
+  }
+  return `${API_BASE_URL}${photo.startsWith("/") ? photo : `/${photo}`}`;
+}
 
 function nextDocument(documents: Document[]): Document | undefined {
   return [...documents].sort((a, b) =>
@@ -50,6 +65,7 @@ export default function VehicleCard({ car }: { car: Car }) {
     t(`common.statuses.car.${car.status}`) !== `common.statuses.car.${car.status}`
       ? t(`common.statuses.car.${car.status}`)
       : car.status;
+  const photoSrc = resolvePhoto(car.photo);
 
   return (
     <Link
@@ -57,14 +73,23 @@ export default function VehicleCard({ car }: { car: Car }) {
       className="block relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-900/60 shadow-glow transition hover:border-gold/60 hover:shadow-[0_0_35px_rgba(212,175,55,0.25)] focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
     >
       <div className="border-b border-neutral-800 bg-neutral-900/80 px-6 py-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <h3 className="text-xl font-semibold text-gold">
-              {car.brand} {car.model}
-            </h3>
-            <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">
-              {car.plate}
-            </p>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-full border border-neutral-700 bg-neutral-900">
+              <img
+                src={photoSrc}
+                alt={`${car.brand} ${car.model}`}
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div>
+              <h3 className="text-xl font-semibold text-gold">
+                {car.brand} {car.model}
+              </h3>
+              <p className="text-sm uppercase tracking-[0.3em] text-neutral-500">
+                {car.plate}
+              </p>
+            </div>
           </div>
           <span
             className={`rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-widest ${indicator}`}

@@ -71,6 +71,7 @@
 │   │   │   ├── __init__.cpython-314.pyc
 │   │   │   ├── admin.cpython-314.pyc
 │   │   │   ├── apps.cpython-314.pyc
+│   │   │   ├── image_service.cpython-314.pyc
 │   │   │   ├── models.cpython-314.pyc
 │   │   │   ├── ocr.cpython-314.pyc
 │   │   │   ├── serializers.cpython-314.pyc
@@ -79,6 +80,7 @@
 │   │   │   └── views.cpython-314.pyc
 │   │   ├── admin.py
 │   │   ├── apps.py
+│   │   ├── image_service.py
 │   │   ├── management
 │   │   │   ├── __init__.py
 │   │   │   ├── __pycache__
@@ -97,12 +99,14 @@
 │   │   │   │   ├── 0002_document_ai_checked_at_document_ai_feedback_and_more.cpython-314.pyc
 │   │   │   │   ├── 0003_document_is_license_valid_document_license_metadata_and_more.cpython-314.pyc
 │   │   │   │   ├── 0004_document_external_fetched_at_and_more.cpython-314.pyc
-│   │   │   │   └── 0005_alter_document_expiry_date_alter_document_issue_date.cpython-314.pyc
+│   │   │   │   ├── 0005_alter_document_expiry_date_alter_document_issue_date.cpython-314.pyc
+│   │   │   │   └── 0006_carimagecatalog.cpython-314.pyc
 │   │   │   ├── 0001_initial.py
 │   │   │   ├── 0002_document_ai_checked_at_document_ai_feedback_and_more.py
 │   │   │   ├── 0003_document_is_license_valid_document_license_metadata_and_more.py
 │   │   │   ├── 0004_document_external_fetched_at_and_more.py
-│   │   │   └── 0005_alter_document_expiry_date_alter_document_issue_date.py
+│   │   │   ├── 0005_alter_document_expiry_date_alter_document_issue_date.py
+│   │   │   └── 0006_carimagecatalog.py
 │   │   ├── models.py
 │   │   ├── ocr.py
 │   │   ├── serializers.py
@@ -13368,6 +13372,8 @@
 │   │   │   ├── layout.tsx
 │   │   │   ├── login
 │   │   │   │   └── page.tsx
+│   │   │   ├── notifications
+│   │   │   │   └── page.tsx
 │   │   │   ├── page.tsx
 │   │   │   ├── register
 │   │   │   │   └── page.tsx
@@ -13402,4 +13408,4 @@
 │   └── savegametoys.sh
 └── tree_toys.txt
 
-3418 directories, 9985 files
+3419 directories, 9990 files

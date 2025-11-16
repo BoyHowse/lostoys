@@ -24,6 +24,7 @@ type Car = {
   model: string;
   plate: string;
   year: number;
+  photo?: string | null;
   estimated_value?: string;
   status: string;
   health_status: string;

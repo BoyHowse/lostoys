@@ -182,3 +182,17 @@ class Maintenance(TimeStampedModel):
 
     def __str__(self) -> str:
         return f"{self.concept} - {self.car.plate}"
+
+
+class CarImageCatalog(TimeStampedModel):
+    brand = models.CharField(max_length=100)
+    model = models.CharField(max_length=100)
+    color_key = models.CharField(max_length=30)
+    image = models.ImageField(upload_to="cars/gallery/")
+
+    class Meta:
+        unique_together = ("brand", "model", "color_key")
+        ordering = ["brand", "model"]
+
+    def __str__(self) -> str:
+        return f"{self.brand} {self.model} ({self.color_key})"

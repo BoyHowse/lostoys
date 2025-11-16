@@ -98,6 +98,10 @@ export function patch(path, body) {
   return request(path, { method: "PATCH", body: JSON.stringify(body) });
 }
 
+export function patchForm(path, formData) {
+  return request(path, { method: "PATCH", body: formData });
+}
+
 export function del(path) {
   return request(path, { method: "DELETE" });
 }

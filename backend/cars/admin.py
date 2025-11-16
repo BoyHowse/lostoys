@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Car, Credit, Document, Maintenance
+from .models import Car, CarImageCatalog, Credit, Document, Maintenance
 
 
 class DocumentInline(admin.TabularInline):
@@ -35,3 +35,9 @@ class MaintenanceAdmin(admin.ModelAdmin):
     list_display = ("car", "concept", "date", "cost", "workshop")
     list_filter = ("date",)
     search_fields = ("car__plate", "concept", "workshop")
+
+
+@admin.register(CarImageCatalog)
+class CarImageCatalogAdmin(admin.ModelAdmin):
+    list_display = ("brand", "model", "color_key", "created_at")
+    search_fields = ("brand", "model", "color_key")
